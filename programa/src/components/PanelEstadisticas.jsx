@@ -1,0 +1,102 @@
+import React from 'react';
+
+export default function PanelEstadisticas({ metrics }) {
+  return (
+    <div style={styles.container}>
+      <div style={styles.cardTitle}>
+        <i className="ti ti-chart-bar"></i> Panel de estadísticas de rendimiento
+      </div>
+
+      <div style={styles.metricsRow}>
+        <div style={styles.metricCard}>
+          <div style={styles.metricLabel}>Tiempo estimado (IA)</div>
+          <div style={styles.metricVal}>{metrics ? metrics.tiempoIA : '--'}</div>
+          <div style={styles.metricSub}>predicción del agente</div>
+        </div>
+        <div style={styles.metricCard}>
+          <div style={styles.metricLabel}>Tiempo real</div>
+          <div style={styles.metricVal}>{metrics ? metrics.tiempoReal : '--'}</div>
+          <div style={styles.metricSub}>ejecución local</div>
+        </div>
+        <div style={styles.metricCard}>
+          <div style={styles.metricLabel}>Operaciones</div>
+          <div style={styles.metricVal}>{metrics ? metrics.operaciones : '--'}</div>
+          <div style={styles.metricSub}>Carga algorítmica</div>
+        </div>
+      </div>
+
+      <div style={styles.chartPlaceholder}>
+        <i className="ti ti-chart-area-line" style={styles.chartIcon}></i>
+        <span style={styles.chartText}>Área lista para simulación y gráficos analíticos</span>
+      </div>
+    </div>
+  );
+}
+
+const styles = {
+  container: {
+    marginTop: '0.5rem',
+  },
+  cardTitle: {
+    fontSize: '12px',
+    fontWeight: '600',
+    color: 'var(--color-text-sub)',
+    textTransform: 'uppercase',
+    letterSpacing: '.8px',
+    marginBottom: '0.75rem',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+  },
+  metricsRow: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr 1fr',
+    gap: '12px',
+    marginTop: '12px',
+  },
+  metricCard: {
+    background: '#FFFFFF',
+    border: '1px solid var(--color-border-soft)',
+    borderRadius: '12px',
+    padding: '1rem',
+    textAlign: 'center',
+    boxShadow: '0 4px 12px rgba(110, 82, 177, 0.01)',
+  },
+  metricLabel: {
+    fontSize: '11px',
+    color: 'var(--color-text-sub)',
+    fontWeight: '600',
+    marginBottom: '4px',
+  },
+  metricVal: {
+    fontSize: '22px',
+    fontWeight: '700',
+    color: 'var(--color-primary-dark)',
+  },
+  metricSub: {
+    fontSize: '11px',
+    color: 'var(--color-text-sub)',
+    marginTop: '2px',
+  },
+  chartPlaceholder: {
+    background: 'linear-gradient(180deg, #FFFFFF 0%, #FAF8FC 100%)',
+    border: '1px dashed var(--color-primary-pastel)',
+    borderRadius: 'var(--border-radius-cute)',
+    height: '120px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'column',
+    gap: '6px',
+    marginTop: '1rem',
+  },
+  chartIcon: {
+    fontSize: '24px',
+    color: 'var(--color-text-sub)',
+  },
+  chartText: {
+    fontSize: '12px',
+    color: 'var(--color-text-sub)',
+    fontWeight: '500',
+  },
+};
