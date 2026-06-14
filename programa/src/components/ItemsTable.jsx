@@ -4,20 +4,20 @@ export default function ItemsTable({ items = [] }) {
   return (
     <div style={styles.card}>
       <div style={styles.cardTitle}>
-        <i className="ti ti-list-details"></i> Objetos del problema
+        <i className="ti ti-list-details"></i> Set de Datos Cargados
       </div>
       <div style={styles.tableWrapper}>
         {items.length === 0 ? (
-          <div style={styles.emptyState}>No hay objetos generados. Usa el panel de configuración.</div>
+          <div style={styles.emptyState}>No hay datos en memoria. Genera un lote aleatorio arriba.</div>
         ) : (
           <table style={styles.table}>
             <thead>
-              <tr>
-                <th style={styles.th}>#</th>
-                <th style={styles.th}>Objeto</th>
+              <tr style={styles.thRow}>
+                <th style={styles.th}># ID</th>
+                <th style={styles.th}>Identificador</th>
                 <th style={styles.th}>Peso (w)</th>
                 <th style={styles.th}>Valor (v)</th>
-                <th style={styles.th}>v/w</th>
+                <th style={styles.th}>Densidad (v/w)</th>
               </tr>
             </thead>
             <tbody>
@@ -26,10 +26,10 @@ export default function ItemsTable({ items = [] }) {
                   <td style={styles.td}>
                     <div style={styles.itemNum}>{item.id}</div>
                   </td>
-                  <td style={{ ...styles.td, fontWeight: '500' }}>{item.name}</td>
-                  <td style={styles.td}>{item.weight}</td>
-                  <td style={styles.td}>{item.value}</td>
-                  <td style={{ ...styles.td, color: 'var(--color-primary-dark)', fontWeight: '600' }}>
+                  <td style={{ ...styles.td, fontWeight: '600' }}>{item.name}</td>
+                  <td style={styles.td}>{item.weight} kg</td>
+                  <td style={styles.td}>${item.value}</td>
+                  <td style={{ ...styles.td, color: 'var(--color-primary-dark)', fontWeight: '700' }}>
                     {(item.value / item.weight).toFixed(2)}
                   </td>
                 </tr>
@@ -44,16 +44,15 @@ export default function ItemsTable({ items = [] }) {
 
 const styles = {
   card: {
-    background: 'var(--color-card-bg)',
+    background: '#FFFFFF',
     border: '1px solid var(--color-border-soft)',
     borderRadius: 'var(--border-radius-cute)',
     padding: '1.5rem',
-    boxShadow: '0 8px 20px rgba(110, 82, 177, 0.03)',
-    flex: 1,
+    boxShadow: '0 10px 25px rgba(110, 82, 177, 0.03)',
   },
   cardTitle: {
-    fontSize: '12px',
-    fontWeight: '600',
+    fontSize: '10px',
+    fontWeight: '700',
     color: 'var(--color-text-sub)',
     textTransform: 'uppercase',
     letterSpacing: '.8px',
@@ -63,48 +62,53 @@ const styles = {
     gap: '6px',
   },
   tableWrapper: {
-    overflowX: 'auto',
+    maxHeight: '340px',
+    overflowY: 'auto',
   },
   emptyState: {
     textAlign: 'center',
-    padding: '2rem 1rem',
+    padding: '3rem 1rem',
     color: 'var(--color-text-sub)',
-    fontSize: '13px',
+    fontSize: '11px',
     fontStyle: 'italic',
+    background: 'var(--color-bg-girly)',
+    borderRadius: '12px',
   },
   table: {
     width: '100%',
     fontSize: '13px',
     borderCollapse: 'collapse',
   },
+  thRow: {
+    background: 'var(--color-primary-pastel)',
+  },
   th: {
     textAlign: 'left',
-    fontWeight: '600',
-    color: 'var(--color-text-sub)',
-    padding: '8px 10px',
-    borderBottom: '1px solid var(--color-border-soft)',
+    fontWeight: '700',
+    color: 'var(--color-primary-dark)',
+    padding: '10px 12px',
     fontSize: '12px',
   },
   tr: {
-    transition: 'background 0.2s ease',
+    borderBottom: '1px solid var(--color-border-soft)',
+    transition: 'background 0.2s',
+    ':hover': { background: '#FAF8FC' }
   },
   td: {
-    padding: '10px 10px',
-    borderBottom: '1px solid var(--color-border-soft)',
+    padding: '10px 12px',
     color: 'var(--color-text-main)',
-    verticalAlign: 'middle',
   },
   itemNum: {
-    width: '26px',
-    height: '26px',
-    borderRadius: '50%',
-    background: '#FAF8FC',
-    border: '1px solid var(--color-border-soft)',
+    width: '24px',
+    height: '24px',
+    borderRadius: '8px',
+    background: '#FFFFFF',
+    border: '1px solid var(--color-primary-medium)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     fontSize: '11px',
-    fontWeight: '600',
-    color: 'var(--color-text-sub)',
+    fontWeight: '700',
+    color: 'var(--color-primary-dark)',
   },
 };
