@@ -4,6 +4,7 @@ import ItemsTable from '../components/ItemsTable';
 import PanelAgente from '../components/PanelAgente';
 import VisualizacionObjetos from '../components/VisualizacionObjetos';
 import PanelEstadisticas from '../components/PanelEstadisticas';
+import askAiAgent from '../components/AgenteIA';
 
 export default function InterfazUsuario() {
   return (
