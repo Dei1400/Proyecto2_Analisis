@@ -1,4 +1,4 @@
-export function dynamic(objetos, capacidad) {
+export function dynamicProgramming(objetos, capacidad) {
   let operaciones = 0;
 
   // Arreglo para almacenar el valor máximo para cada capacidad desde 0 hasta la capacidad dada
