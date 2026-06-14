@@ -1,122 +1,192 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PanelConfiguracion from '../components/PanelConfiguracion';
 import ItemsTable from '../components/ItemsTable';
 import PanelAgente from '../components/PanelAgente';
 import VisualizacionObjetos from '../components/VisualizacionObjetos';
 import PanelEstadisticas from '../components/PanelEstadisticas';
+import askAiAgent from '../components/AgenteIA';
+
+// 2. FUNCIONES MOCK EXTERNAS  CAMBIAR!!SON SOLO PARA PRUEBAS
+const solveDynamicProgramming = (items, W) => {
+  const selected = items.slice(0, Math.min(items.length, 3));
+  return { selectedIds: selected.map(i => i.id), operations: items.length * W };
+};
+
+const solveGreedy = (items, W) => {
+  const selected = [...items].sort((a, b) => (b.value / b.weight) - (a.value / a.weight)).slice(0, 2);
+  return { selectedIds: selected.map(i => i.id), operations: Math.round(items.length * Math.log2(items.length)) };
+};
+
+const solveBacktracking = (items, W) => {
+  const selected = items.filter((_, idx) => idx % 2 === 0);
+  return { selectedIds: selected.map(i => i.id), operations: Math.pow(2, items.length) };
+};
 
 export default function InterfazUsuario() {
+  const [N, setN] = useState(4);
+  const [W, setW] = useState(10);
+  const [priority, setPriority] = useState('accuracy'); 
+  const [maxTime, setMaxTime] = useState(5);
+  const [apiKey, setApiKey] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const [items, setItems] = useState([]);
+  const [selectedIds, setSelectedIds] = useState([]);
+  const [decision, setDecision] = useState(null);
+  const [metrics, setMetrics] = useState(null);
+
+  const handleGenerateRandom = () => {
+    const newItems = [];
+    for (let i = 1; i <= N; i++) {
+      newItems.push({
+        id: i,
+        name: `Objeto ${i}`,
+        weight: Math.floor(Math.random() * 15) + 2,
+        value: Math.floor(Math.random() * 25) + 5
+      });
+    }
+    setItems(newItems);
+    setSelectedIds([]);
+    setDecision(null);
+    setMetrics(null);
+  };
+
+  const handleRunSystem = async () => {
+    if (items.length === 0) {
+      alert("Por favor, genera primero los objetos aleatorios.");
+      return;
+    }
+    if (!apiKey) {
+      alert("Por favor, introduce tu Gemini API Key.");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Llamada real al servicio de IA
+      const aiResponse = await askAiAgent(N, W, priority, maxTime, apiKey);
+      setDecision(aiResponse);
+
+      const algoritmoRecomendado = aiResponse.algoritmoRecomendado;
+      let resultadoAlgoritmo;
+      
+      const tiempoInicial = performance.now();
+
+      // Comparación flexible por si la IA devuelve variaciones de texto
+      if (algoritmoRecomendado?.includes("Dinámica") || algoritmoRecomendado?.includes("Dynamic")) {
+        resultadoAlgoritmo = solveDynamicProgramming(items, W);
+      } else if (algoritmoRecomendado?.includes("Greedy") || algoritmoRecomendado?.includes("Codicioso")) {
+        resultadoAlgoritmo = solveGreedy(items, W);
+      } else if (algoritmoRecomendado?.includes("Backtracking")) {
+        resultadoAlgoritmo = solveBacktracking(items, W);
+      } else {
+        resultadoAlgoritmo = solveGreedy(items, W);
+      }
+
+      const tiempoFinal = performance.now();
+
+      setSelectedIds(resultadoAlgoritmo.selectedIds);
+      setMetrics({
+        tiempoIA: aiResponse.tiempoEstimado || "0 ms",
+        tiempoReal: `${(tiempoFinal - tiempoInicial).toFixed(2)} ms`,
+        operaciones: resultadoAlgoritmo.operations
+      });
+
+    } catch (error) {
+      alert(`Error de ejecución: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div style={styles.appContainer}>
       <style>{`
         :root {
-          --color-bg-girly: #F9F6FC;
+          --color-bg-girly: #F5EEF8; 
           --color-card-bg: #FFFFFF;
-          --color-primary-pastel: #D6C7FF; /* Lila Pastel Principal */
-          --color-primary-dark: #6D52B1;   /* Texto lila oscuro para contraste */
-          --color-accent-pink: #FCE4EC;    /* Rosa Pastel */
+          --color-primary-pastel: #E8DFFF; 
+          --color-primary-medium: #BBADFF;
+          --color-primary-dark: #5B3F96;   
+          --color-accent-pink: #FCE4EC;    
           --color-accent-pink-dark: #C2185B;
-          --color-text-main: #4A3E56;
-          --color-text-sub: #8A7A97;
-          --color-border-soft: #E8E2EE;
-          --border-radius-cute: 16px;
+          --color-mint-pastel: #E8F8F5;
+          --color-mint-dark: #117864;
+          --color-text-main: #3D314A;
+          --color-text-sub: #7B6B87;
+          --color-border-soft: #E2D9EC;
+          --border-radius-cute: 20px;
         }
         body {
-          background-color: var(--color-bg-girly);
+          background: linear-gradient(135deg, #F5EEF8 0%, #E8F0FE 100%);
           color: var(--color-text-main);
           font-family: system-ui, -apple-system, sans-serif;
           margin: 0;
+          min-height: 100vh;
+        }
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+        .spin {
+          display: inline-block;
+          animation: spin 1s linear infinite;
         }
       `}</style>
 
-      {/* Header de la Aplicación */}
+      {/* Header Panorámico */}
       <header style={styles.header}>
-        <div style={styles.headerIcon}>
-          <i className="ti ti-backpack" style={{ fontSize: '22px', color: 'var(--color-primary-dark)' }}></i>
+        <div style={styles.headerLeft}>
+          <div style={styles.headerIcon}>
+            <i className="ti ti-backpack" style={{ fontSize: '25px', color: 'var(--color-primary-dark)' }}></i>
+          </div>
+          <div style={styles.titleGroup}>
+            <h1 style={styles.title}>Knapsack Smart Router</h1>
+            <span style={styles.dividerPipe}>|</span>
+            <p style={styles.subtitle}>Agente Inteligente de Enrutamiento</p>
+          </div>
         </div>
-        <div>
-          <h1 style={styles.title}>Knapsack Smart Router</h1>
-          <p style={styles.subtitle}>Agente Inteligente de Enrutamiento</p>
-        </div>
-        <span style={styles.badge}>Deylin Salazar Alexa Fallas</span>
+        <span style={styles.badge}>Deylin Salazar · Alexa Fallas</span>
       </header>
 
-      {/* Grid Principal (Configuración e Items del Problema) */}
-      <div style={styles.grid2}>
-        <PanelConfiguracion />
-        <ItemsTable />
+      <div style={styles.workspaceGrid}>
+        {/* COLUMNA IZQUIERDA */}
+        <div style={styles.columnInput}>
+          <PanelConfiguracion 
+            N={N} setN={setN}
+            W={W} setW={setW}
+            priority={priority} setPriority={setPriority}
+            maxTime={maxTime} setMaxTime={setMaxTime}
+            apiKey={apiKey} setApiKey={setApiKey}
+            onGenerateRandom={handleGenerateRandom}
+            onRunSystem={handleRunSystem}
+            loading={loading}
+          />
+          <ItemsTable items={items} />
+        </div>
+
+        {/* COLUMNA DERECHA */}
+        <div style={styles.columnOutput}>
+          <PanelAgente decision={decision} />
+          <VisualizacionObjetos items={items} selectedIds={selectedIds} />
+          <PanelEstadisticas metrics={metrics} />
+        </div>
       </div>
-
-      <hr style={styles.divider} />
-
-      {/* Bloque de Decisión de la IA */}
-      <PanelAgente />
-
-      <hr style={styles.divider} />
-
-      {/* Bloque de Objetos Seleccionados */}
-      <VisualizacionObjetos />
-
-      <hr style={styles.divider} />
-
-      {/* Bloque del Panel Analítico de Tiempos y Complejidad */}
-      <PanelEstadisticas />
     </div>
   );
 }
 
 const styles = {
-  appContainer: {
-    maxWidth: '960px',
-    margin: '0 auto',
-    padding: '2rem 1rem',
-  },
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-    marginBottom: '2rem',
-    paddingBottom: '1.5rem',
-    borderBottom: '1px solid var(--color-border-soft)',
-  },
-  headerIcon: {
-    width: '44px',
-    height: '44px',
-    background: 'var(--color-accent-pink)',
-    borderRadius: '12px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    boxShadow: '0 4px 10px rgba(246, 212, 225, 0.4)',
-  },
-  title: {
-    fontSize: '22px',
-    fontWeight: '600',
-    color: 'var(--color-primary-dark)',
-    letterSpacing: '-0.3px',
-  },
-  subtitle: {
-    fontSize: '13px',
-    color: 'var(--color-text-sub)',
-    marginTop: '2px',
-  },
-  badge: {
-    fontSize: '11px',
-    padding: '4px 10px',
-    borderRadius: '20px',
-    background: 'var(--color-primary-pastel)',
-    color: 'var(--color-primary-dark)',
-    fontWeight: '600',
-    marginLeft: 'auto',
-  },
-  grid2: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '1.5rem',
-  },
-  divider: {
-    border: 'none',
-    borderTop: '1px solid var(--color-border-soft)',
-    margin: '2rem 0',
-  },
+  appContainer: { maxWidth: '1450px', margin: '0 auto', padding: '1.5rem 2rem' },
+  header: { display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', padding: '0.4rem 0.75rem', background: 'var(--color-card-bg)', borderBottom: '1px solid var(--color-border-soft)', borderRadius: '10px', marginBottom: '0.5rem', flexShrink: 0 },
+  headerLeft: { display: 'flex', alignItems: 'center', gap: '8px' },
+  headerIcon: { width: '30px', height: '30px', background: 'var(--color-accent-pink)', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  titleGroup: { display: 'flex', alignItems: 'center', gap: '10px' },
+  title: { fontSize: '16px', fontWeight: '700', color: 'var(--color-primary-dark)', whiteSpace: 'nowrap' },
+  dividerPipe: { color: 'var(--color-border-soft)', fontSize: '13px', fontWeight: '300' },
+  subtitle: { fontSize: '12px', color: 'var(--color-text-sub)', whiteSpace: 'nowrap' },
+  badge: { fontSize: '12px', padding: '2px 8px', borderRadius: '20px', background: 'var(--color-primary-pastel)', color: 'var(--color-primary-dark)', fontWeight: '600', whiteSpace: 'nowrap' },
+  workspaceGrid: { display: 'grid', gridTemplateColumns: '43% 55%', gap: '2%', alignItems: 'start' },
+  columnInput: { display: 'flex', flexDirection: 'column', gap: '1.5rem' },
+  columnOutput: { display: 'flex', flexDirection: 'column', gap: '1.5rem' }
 };

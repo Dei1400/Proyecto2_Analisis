@@ -22,7 +22,7 @@ export default function PanelConfiguracion({
       <input 
         type="number" 
         value={N} 
-        min={2} 
+        min={4} 
         max={25} 
         onChange={(e) => setN(parseInt(e.target.value) || 0)} 
         style={styles.input} 
@@ -74,7 +74,7 @@ export default function PanelConfiguracion({
       <div style={styles.apiRow}>
         <input 
           type={showPass ? "text" : "password"} 
-          placeholder="AIzaSy..." 
+          placeholder="API Key..." 
           value={apiKey}
           onChange={(e) => setApiKey(e.target.value)}
           style={{ ...styles.input, marginBottom: 0, flex: 1 }} 
@@ -124,7 +124,7 @@ const styles = {
     marginBottom: '6px',
   },
   input: {
-    width: '100%',
+    width: '80%',
     padding: '10px 12px',
     border: '1px solid var(--color-border-soft)',
     borderRadius: '10px',
