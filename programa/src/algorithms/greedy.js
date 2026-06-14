@@ -1,38 +1,35 @@
-export function greedy(items, capacity) {
-  // Contar para medir la carga del algoritmo
-  let operations = 0;
-  //se acumulan el peso y valor total de la mochila
-  let totalWeight = 0;
-  let totalValue = 0;
+export function greedy(objetos, capacidad) {
+  let operaciones = 0; // Contador de operaciones para análisis de complejidad
 
-  const selectedItems = [];
+  let pesoTotal = 0;
+  let valorTotal = 0;
 
-  // Se crea una copia del arreglo original para no modificar los datos originales. Se ordenan por densidad: valor / peso
-  const sortedItems = [...items].sort((a, b) => {
-    operations++;
-    const densityA = a.value / a.weight;
-    const densityB = b.value / b.weight;
+  const objetosSeleccionados = []; // Lista para almacenar los objetos seleccionados
 
-    return densityB - densityA; // Orden descendente por densidad
+  const objetosOrdenados = [...objetos].sort((a, b) => { // Ordenar por densidad (valor/peso) de mayor a menor
+    operaciones++;
+
+    const densidadA = a.value / a.weight;
+    const densidadB = b.value / b.weight;
+
+    return densidadB - densidadA;
   });
 
-  // Se recorren los objetos ya ordenados por densidad
-  for (const item of sortedItems) {
-    operations++;
+  for (const objeto of objetosOrdenados) {
+    operaciones++;
 
-    // Si el objeto cabe en la mochila
-    if (totalWeight + item.weight <= capacity) {
-      selectedItems.push(item);
-      totalWeight += item.weight;
-      totalValue += item.value;
+    if (pesoTotal + objeto.weight <= capacidad) {
+      objetosSeleccionados.push(objeto);
+      pesoTotal += objeto.weight;
+      valorTotal += objeto.value;
     }
   }
 
   return {
-    algorithm: "greedy",
-    selectedItems,
-    totalWeight,
-    totalValue,
-    operations,
+    algoritmo: "greedy",
+    objetosSeleccionados,
+    pesoTotal,
+    valorTotal,
+    operaciones,
   };
 }
