@@ -8,7 +8,8 @@ export default function PanelConfiguracion({
   apiKey, setApiKey,
   onGenerateRandom,
   onRunSystem,
-  loading
+  loading,
+  onGenerateManual,
 }) {
   const [showPass, setShowPass] = useState(false);
 
@@ -37,9 +38,13 @@ export default function PanelConfiguracion({
         style={styles.input} 
       />
 
+      {/* ── Dos botones lado a lado ── */}
       <div style={styles.row}>
+        <button onClick={onGenerateManual} style={styles.btnSecundario}>
+          <i className="ti ti-plus"></i> Generar objetos
+        </button>
         <button onClick={onGenerateRandom} style={styles.btnSecundario}>
-          <i className="ti ti-refresh"></i> Generar Objetos Aleatorios
+          <i className="ti ti-refresh"></i> Aleatorio
         </button>
       </div>
 
@@ -136,6 +141,7 @@ const styles = {
   },
   row: {
     display: 'flex',
+    gap: '8px',
     marginBottom: '14px',
   },
   btnSecundario: {

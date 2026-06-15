@@ -9,6 +9,16 @@ import { greedy } from '../algorithms/greedy';
 import { dynamicProgramming } from '../algorithms/dynamic';
 import { backtracking } from '../algorithms/backtracking';
 
+// Valor mínimo y máximo permitido para el valor de cada objeto
+const VALOR_MIN = 4;
+const VALOR_MAX = 25;
+
+// Clampea un número entre min y max
+const clamp = (n, min, max) => Math.min(Math.max(n, min), max);
+
+// Genera un entero aleatorio entre min y max (inclusive)
+const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
 export default function InterfazUsuario() {
   const [N, setN] = useState(4);
   const [W, setW] = useState(10);
@@ -18,29 +28,54 @@ export default function InterfazUsuario() {
   const [loading, setLoading] = useState(false);
 
   const [items, setItems] = useState([]);
+  const [isManual, setIsManual] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
   const [decision, setDecision] = useState(null);
   const [metrics, setMetrics] = useState(null);
 
+  // ── Genera objetos con valores aleatorios dentro del rango permitido ──
   const handleGenerateRandom = () => {
-    const newItems = [];
-    for (let i = 1; i <= N; i++) {
-      newItems.push({
-        id: i,
-        name: `Objeto ${i}`,
-        weight: Math.floor(Math.random() * 15) + 2,
-        value: Math.floor(Math.random() * 25) + 5
-      });
-    }
+    const newItems = Array.from({ length: N }, (_, i) => ({
+      id: i + 1,
+      name: `Objeto ${i + 1}`,
+      weight: randInt(1, 15),
+      value: randInt(VALOR_MIN, VALOR_MAX), // siempre entre 4 y 25
+    }));
     setItems(newItems);
+    setIsManual(false);
     setSelectedIds([]);
     setDecision(null);
     setMetrics(null);
   };
 
+  // ── Genera objetos con valor inicial mínimo para que el usuario los edite ──
+  const handleGenerateManual = () => {
+    const newItems = Array.from({ length: N }, (_, i) => ({
+      id: i + 1,
+      name: `Objeto ${i + 1}`,
+      weight: 1,
+      value: VALOR_MIN, // empieza en el mínimo permitido (4)
+    }));
+    setItems(newItems);
+    setIsManual(true);
+    setSelectedIds([]);
+    setDecision(null);
+    setMetrics(null);
+  };
+
+  // ── Actualiza un campo de un objeto, aplicando restricciones si es "value" ──
+  const handleItemChange = (id, field, val) => {
+    const sanitized = field === 'value'
+      ? clamp(val, VALOR_MIN, VALOR_MAX) // fuerza el rango 4-25
+      : Math.max(val, 1);                // peso mínimo 1
+    setItems(prev =>
+      prev.map(item => item.id === id ? { ...item, [field]: sanitized } : item)
+    );
+  };
+
   const handleRunSystem = async () => {
     if (items.length === 0) {
-      alert("Por favor, genera primero los objetos aleatorios.");
+      alert("Por favor, genera primero los objetos.");
       return;
     }
     if (!apiKey) {
@@ -65,7 +100,6 @@ export default function InterfazUsuario() {
       } else if (algoritmoRecomendado?.includes("Backtracking")) {
         resultadoAlgoritmo = backtracking(items, W);
       } else {
-        // Estrategia por defecto segura en caso de un retorno inesperado
         resultadoAlgoritmo = greedy(items, W);
       }
 
@@ -147,10 +181,15 @@ export default function InterfazUsuario() {
             maxTime={maxTime} setMaxTime={setMaxTime}
             apiKey={apiKey} setApiKey={setApiKey}
             onGenerateRandom={handleGenerateRandom}
+            onGenerateManual={handleGenerateManual}
             onRunSystem={handleRunSystem}
             loading={loading}
           />
-          <ItemsTable items={items} />
+          <ItemsTable
+            items={items}
+            isManual={isManual}
+            onItemChange={handleItemChange}
+          />
         </div>
 
         {/* COLUMNA DERECHA */}

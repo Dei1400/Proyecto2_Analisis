@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function ItemsTable({ items = [] }) {
+export default function ItemsTable({ items = [], isManual = false, onItemChange }) {
   return (
     <div style={styles.card}>
       <div style={styles.cardTitle}>
@@ -16,7 +16,7 @@ export default function ItemsTable({ items = [] }) {
                 <th style={styles.th}>#</th>
                 <th style={styles.th}>Objeto</th>
                 <th style={styles.th}>Peso (w)</th>
-                <th style={styles.th}>Valor (v)</th>
+                <th style={styles.th}>Valor (v) <span style={styles.rangeHint}>4–25</span></th>
                 <th style={styles.th}>v/w</th>
               </tr>
             </thead>
@@ -27,8 +27,44 @@ export default function ItemsTable({ items = [] }) {
                     <div style={styles.itemNum}>{item.id}</div>
                   </td>
                   <td style={{ ...styles.td, fontWeight: '500' }}>{item.name}</td>
-                  <td style={styles.td}>{item.weight}</td>
-                  <td style={styles.td}>{item.value}</td>
+
+                  {/* Peso */}
+                  <td style={styles.td}>
+                    {isManual ? (
+                      <input
+                        type="number"
+                        min={1}
+                        value={item.weight}
+                        onChange={(e) => onItemChange(item.id, 'weight', parseInt(e.target.value) || 1)}
+                        style={styles.cellInput}
+                      />
+                    ) : (
+                      item.weight
+                    )}
+                  </td>
+
+                  {/* Valor — rango estricto 4-25 */}
+                  <td style={styles.td}>
+                    {isManual ? (
+                      <input
+                        type="number"
+                        min={4}
+                        max={25}
+                        value={item.value}
+                        onChange={(e) => onItemChange(item.id, 'value', parseInt(e.target.value) || 4)}
+                        style={{
+                          ...styles.cellInput,
+                          // borde rojo si el valor está fuera del rango
+                          borderColor: (item.value < 4 || item.value > 25)
+                            ? '#E53935'
+                            : 'var(--color-border-soft)',
+                        }}
+                      />
+                    ) : (
+                      item.value
+                    )}
+                  </td>
+
                   <td style={{ ...styles.td, color: 'var(--color-primary-dark)', fontWeight: '600' }}>
                     {(item.value / item.weight).toFixed(2)}
                   </td>
@@ -61,6 +97,15 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '6px',
+  },
+  rangeHint: {
+    fontSize: '10px',
+    fontWeight: '500',
+    color: 'var(--color-primary-dark)',
+    background: 'var(--color-primary-pastel)',
+    borderRadius: '6px',
+    padding: '1px 5px',
+    marginLeft: '4px',
   },
   tableWrapper: {
     overflowX: 'auto',
@@ -106,5 +151,15 @@ const styles = {
     fontSize: '11px',
     fontWeight: '600',
     color: 'var(--color-text-sub)',
+  },
+  cellInput: {
+    width: '70px',
+    padding: '5px 8px',
+    border: '1px solid var(--color-border-soft)',
+    borderRadius: '8px',
+    fontSize: '12px',
+    color: 'var(--color-text-main)',
+    background: '#FAF8FC',
+    outline: 'none',
   },
 };
