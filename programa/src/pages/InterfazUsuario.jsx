@@ -5,22 +5,9 @@ import PanelAgente from '../components/PanelAgente';
 import VisualizacionObjetos from '../components/VisualizacionObjetos';
 import PanelEstadisticas from '../components/PanelEstadisticas';
 import askAiAgent from '../components/AgenteIA';
-
-// 2. FUNCIONES MOCK EXTERNAS  CAMBIAR!!SON SOLO PARA PRUEBAS
-const solveDynamicProgramming = (items, W) => {
-  const selected = items.slice(0, Math.min(items.length, 3));
-  return { selectedIds: selected.map(i => i.id), operations: items.length * W };
-};
-
-const solveGreedy = (items, W) => {
-  const selected = [...items].sort((a, b) => (b.value / b.weight) - (a.value / a.weight)).slice(0, 2);
-  return { selectedIds: selected.map(i => i.id), operations: Math.round(items.length * Math.log2(items.length)) };
-};
-
-const solveBacktracking = (items, W) => {
-  const selected = items.filter((_, idx) => idx % 2 === 0);
-  return { selectedIds: selected.map(i => i.id), operations: Math.pow(2, items.length) };
-};
+import { greedy } from '../algorithms/greedy';
+import { dynamicProgramming } from '../algorithms/dynamic';
+import { backtracking } from '../algorithms/backtracking';
 
 export default function InterfazUsuario() {
   const [N, setN] = useState(4);
@@ -63,7 +50,6 @@ export default function InterfazUsuario() {
 
     setLoading(true);
     try {
-      // Llamada real al servicio de IA
       const aiResponse = await askAiAgent(N, W, priority, maxTime, apiKey);
       setDecision(aiResponse);
 
@@ -72,24 +58,26 @@ export default function InterfazUsuario() {
       
       const tiempoInicial = performance.now();
 
-      // Comparación flexible por si la IA devuelve variaciones de texto
       if (algoritmoRecomendado?.includes("Dinámica") || algoritmoRecomendado?.includes("Dynamic")) {
-        resultadoAlgoritmo = solveDynamicProgramming(items, W);
+        resultadoAlgoritmo = dynamicProgramming(items, W);
       } else if (algoritmoRecomendado?.includes("Greedy") || algoritmoRecomendado?.includes("Codicioso")) {
-        resultadoAlgoritmo = solveGreedy(items, W);
+        resultadoAlgoritmo = greedy(items, W);
       } else if (algoritmoRecomendado?.includes("Backtracking")) {
-        resultadoAlgoritmo = solveBacktracking(items, W);
+        resultadoAlgoritmo = backtracking(items, W);
       } else {
-        resultadoAlgoritmo = solveGreedy(items, W);
+        // Estrategia por defecto segura en caso de un retorno inesperado
+        resultadoAlgoritmo = greedy(items, W);
       }
 
       const tiempoFinal = performance.now();
 
-      setSelectedIds(resultadoAlgoritmo.selectedIds);
+      const idsSeleccionados = resultadoAlgoritmo.objetosSeleccionados.map(objeto => objeto.id);
+      setSelectedIds(idsSeleccionados);
+      
       setMetrics({
         tiempoIA: aiResponse.tiempoEstimado || "0 ms",
         tiempoReal: `${(tiempoFinal - tiempoInicial).toFixed(2)} ms`,
-        operaciones: resultadoAlgoritmo.operations
+        operaciones: resultadoAlgoritmo.operaciones
       });
 
     } catch (error) {
