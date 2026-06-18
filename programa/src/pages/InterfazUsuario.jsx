@@ -12,7 +12,7 @@ import { backtracking } from '../algorithms/backtracking';
 
 // Valor mínimo y máximo permitido para el valor de cada objeto
 const VALOR_MIN = 4;
-const VALOR_MAX = 25;
+const VALOR_MAX = 100;
 
 // Clampea un número entre min y max
 const clamp = (n, min, max) => Math.min(Math.max(n, min), max);
@@ -38,11 +38,11 @@ export default function InterfazUsuario() {
 
   // ── Genera objetos con valores aleatorios dentro del rango permitido ──
   const handleGenerateRandom = () => {
-    const newItems = Array.from({ length: N }, (_, i) => ({
+    const newItems =  Array.from({ length: Math.min(Math.max(N, 4), 25) }, (_, i) => ({
       id: i + 1,
       name: `Objeto ${i + 1}`,
-      weight: randInt(1, 15),
-      value: randInt(VALOR_MIN, VALOR_MAX), // siempre entre 4 y 25
+      weight: randInt(VALOR_MIN, VALOR_MAX),
+      value: randInt(VALOR_MIN, VALOR_MAX),
     }));
     setItems(newItems);
     setIsManual(false);
@@ -55,11 +55,11 @@ export default function InterfazUsuario() {
 
   // ── Genera objetos con valor inicial mínimo para que el usuario los edite ──
   const handleGenerateManual = () => {
-    const newItems = Array.from({ length: N }, (_, i) => ({
+    const newItems = Array.from({ length: Math.min(Math.max(N, 4), 25) }, (_, i) => ({
       id: i + 1,
       name: `Objeto ${i + 1}`,
       weight: 1,
-      value: VALOR_MIN, // empieza en el mínimo permitido (4)
+      value: 1, // empieza en el mínimo permitido (4)
     }));
     setItems(newItems);
     setIsManual(true);
@@ -72,13 +72,14 @@ export default function InterfazUsuario() {
 
   // ── Actualiza un campo de un objeto, aplicando restricciones si es "value" ──
   const handleItemChange = (id, field, val) => {
-    const sanitized = field === 'value'
-      ? clamp(val, VALOR_MIN, VALOR_MAX) // fuerza el rango 4-25
-      : Math.max(val, 1);                // peso mínimo 1
-    setItems(prev =>
-      prev.map(item => item.id === id ? { ...item, [field]: sanitized } : item)
-    );
-  };
+    const sanitized =
+    field === 'value'
+      ? clamp(val, 1, 100)
+      : clamp(val, 1, 100);                // peso mínimo 1
+      setItems(prev =>
+        prev.map(item => item.id === id ? { ...item, [field]: sanitized } : item)
+      );
+    };
 
   const handleRunSystem = async () => {
     if (items.length === 0) {
@@ -89,12 +90,29 @@ export default function InterfazUsuario() {
       alert("Por favor, introduce tu Gemini API Key.");
       return;
     }
-     setAgentError(null);
+    setAgentError(null);
+    setDecision(null);
+    setSelectedIds([]);
+    setMetrics(null);
 
     setLoading(true);
     try {
-      const aiResponse = await askAiAgent(N, W, priority, maxTime, apiKey);
+      const aiResponse = await askAiAgent(items.length, W, priority, maxTime, apiKey);
       setDecision(aiResponse);
+      // Protección para evitar bloquear el hilo principal del navegador
+      if (
+        aiResponse.algoritmoRecomendado?.includes("Backtracking") &&
+        items.length > 20
+      ) {
+        setAgentError(
+          "Backtracking no se ejecuta con más de 20 objetos para proteger el rendimiento del navegador."
+        );
+        setDecision(null);
+        setSelectedIds([]);
+        setMetrics(null);
+        setLoading(false);
+        return;
+      }
 
       const algoritmoRecomendado = aiResponse.algoritmoRecomendado;
       let resultadoAlgoritmo;
@@ -122,7 +140,8 @@ export default function InterfazUsuario() {
         operaciones: resultadoAlgoritmo.operaciones
       });
 
-    }catch (error) {
+      }
+      catch (error) {
         let mensajeError = error.message;
 
         if (mensajeError.includes("high demand")) {
@@ -136,7 +155,12 @@ export default function InterfazUsuario() {
         }
 
         setAgentError(mensajeError);
-    } finally {
+
+        setDecision(null);
+        setSelectedIds([]);
+        setMetrics(null);
+    }
+    finally {
       setLoading(false);
     }
   };

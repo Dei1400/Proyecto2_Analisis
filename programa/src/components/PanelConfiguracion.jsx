@@ -20,22 +20,29 @@ export default function PanelConfiguracion({
       </div>
 
       <label style={styles.label}>Cantidad de objetos (N)</label>
-      <input 
+      <input
         type="number" 
         value={N} 
-        min={0} 
-        max={150} 
-        onChange={(e) => setN(parseInt(e.target.value) || 0)} 
+        min={4} 
+        max={25} 
+        onChange={(e) => {
+          const valor = parseInt(e.target.value) || 4;
+          setN(Math.min(Math.max(valor, 4), 25));
+        }} 
         style={styles.input} 
       />
 
       <label style={styles.label}>Capacidad de la mochila (W)</label>
       <input 
-        type="number" 
-        value={W} 
-        min={1}
-        onChange={(e) => setW(parseInt(e.target.value) || 0)} 
-        style={styles.input} 
+          type="number" 
+          value={W} 
+          min={1}
+          max={100}
+          onChange={(e) => {
+            const valor = parseInt(e.target.value) || 1;
+            setW(Math.min(Math.max(valor, 1), 100));
+          }} 
+          style={styles.input} 
       />
 
       {/* ── Dos botones lado a lado ── */}
