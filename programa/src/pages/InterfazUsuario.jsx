@@ -5,6 +5,7 @@ import PanelAgente from '../components/PanelAgente';
 import VisualizacionObjetos from '../components/VisualizacionObjetos';
 import PanelEstadisticas from '../components/PanelEstadisticas';
 import askAiAgent from '../components/AgenteIA';
+
 import { greedy } from '../algorithms/greedy';
 import { dynamicProgramming } from '../algorithms/dynamic';
 import { backtracking } from '../algorithms/backtracking';
@@ -33,6 +34,8 @@ export default function InterfazUsuario() {
   const [decision, setDecision] = useState(null);
   const [metrics, setMetrics] = useState(null);
 
+  const [agentError, setAgentError] = useState(null);
+
   // ── Genera objetos con valores aleatorios dentro del rango permitido ──
   const handleGenerateRandom = () => {
     const newItems = Array.from({ length: N }, (_, i) => ({
@@ -46,6 +49,8 @@ export default function InterfazUsuario() {
     setSelectedIds([]);
     setDecision(null);
     setMetrics(null);
+
+    setAgentError(null);
   };
 
   // ── Genera objetos con valor inicial mínimo para que el usuario los edite ──
@@ -61,6 +66,8 @@ export default function InterfazUsuario() {
     setSelectedIds([]);
     setDecision(null);
     setMetrics(null);
+
+    setAgentError(null);
   };
 
   // ── Actualiza un campo de un objeto, aplicando restricciones si es "value" ──
@@ -82,6 +89,7 @@ export default function InterfazUsuario() {
       alert("Por favor, introduce tu Gemini API Key.");
       return;
     }
+     setAgentError(null);
 
     setLoading(true);
     try {
@@ -114,8 +122,20 @@ export default function InterfazUsuario() {
         operaciones: resultadoAlgoritmo.operaciones
       });
 
-    } catch (error) {
-      alert(`Error de ejecución: ${error.message}`);
+    }catch (error) {
+        let mensajeError = error.message;
+
+        if (mensajeError.includes("high demand")) {
+          mensajeError =
+            "Gemini está experimentando una alta demanda en este momento. Intenta nuevamente en unos minutos.";
+        }
+
+        if (mensajeError.includes("quota")) {
+          mensajeError =
+            "Se alcanzó el límite de uso de la API de Gemini. Debes esperar a que se reinicie la cuota o utilizar otra API Key.";
+        }
+
+        setAgentError(mensajeError);
     } finally {
       setLoading(false);
     }
@@ -194,7 +214,11 @@ export default function InterfazUsuario() {
 
         {/* COLUMNA DERECHA */}
         <div style={styles.columnOutput}>
-          <PanelAgente decision={decision} />
+          <PanelAgente
+              decision={decision}
+              loading={loading}
+              error={agentError}
+            />
           <VisualizacionObjetos items={items} selectedIds={selectedIds} />
           <PanelEstadisticas metrics={metrics} />
         </div>

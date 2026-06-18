@@ -1,22 +1,30 @@
 import React from 'react';
 
-export default function VisualizacionObjetos() {
-  // Datos de ejemplo para representar el estado visual de la mochila
-  const items = [
-
-  ];
+export default function VisualizacionObjetos({ items = [], selectedIds = [] }) {
 
   return (
     <div style={styles.container}>
       <div style={styles.cardTitle}>
         <i className="ti ti-backpack"></i> Objetos seleccionados
       </div>
+
+      {items.length === 0 && ( //Para mostrar un mensaje cuando no hay objetos generados
+          <div style={styles.emptyState}>
+            Aún no hay objetos generados.
+          </div> )}
+
+      {items.length > 0 && selectedIds.length === 0 && ( //Para mostrar un mensaje cuando hay objetos 
+        <div style={styles.emptyState}>
+          Ejecuta el agente para ver los objetos seleccionados.
+        </div>
+      )}
+
       <div style={styles.itemsVisual}>
-        {items.map((item, index) => {
-          const isSelected = item.selected;
+        {items.filter((item) => selectedIds.includes(item.id)).map((item) => {
+          const isSelected = true; 
           return (
             <div 
-              key={index} 
+              key={item.id} 
               style={{ 
                 ...styles.itemBox, 
                 ...(isSelected ? styles.itemBoxSelected : {}) 
@@ -37,6 +45,12 @@ export default function VisualizacionObjetos() {
 }
 
 const styles = {
+  emptyState: {
+  fontSize: '13px',
+  color: 'var(--color-text-sub)',
+  fontStyle: 'italic',
+  padding: '1rem 0',
+  },
   container: {
     marginTop: '0.5rem',
   },
