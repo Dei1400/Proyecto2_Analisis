@@ -20,9 +20,8 @@ export default function VisualizacionObjetos({ items = [], selectedIds = [] }) {
       )}
 
       <div style={styles.itemsVisual}>
-        {items.map((item) => {
-          // const isSelected = item.selected;
-          const isSelected = selectedIds.includes(item.id); //Para determinar si el objeto está seleccionado comparando su id con los ids seleccionados
+        {items.filter((item) => selectedIds.includes(item.id)).map((item) => {
+          const isSelected = true; 
           return (
             <div 
               key={item.id} 
