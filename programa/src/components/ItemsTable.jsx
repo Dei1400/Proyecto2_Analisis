@@ -48,14 +48,14 @@ export default function ItemsTable({ items = [], isManual = false, onItemChange 
                     {isManual ? (
                       <input
                         type="number"
-                        min={4}
-                        max={25}
+                        min={1}
+                        max={100}
                         value={item.value}
-                        onChange={(e) => onItemChange(item.id, 'value', parseInt(e.target.value) || 4)}
+                        onChange={(e) => onItemChange(item.id, 'value', parseInt(e.target.value) || 1)}
                         style={{
                           ...styles.cellInput,
                           // borde rojo si el valor está fuera del rango
-                          borderColor: (item.value < 4 || item.value > 25)
+                          borderColor: (item.value < 1 || item.value > 100)
                             ? '#E53935'
                             : 'var(--color-border-soft)',
                         }}

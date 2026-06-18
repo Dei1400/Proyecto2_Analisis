@@ -9,7 +9,11 @@ export default async function askAiAgent(N, W, priority, maxTime, apiKey) {
     - Cantidad de Objetos (N): ${N}
     - Capacidad Máxima de la Mochila (W): ${W}
     - Criterio de Prioridad del Negocio: "${priority === 'accuracy' ? 'Exactitud Matemática Absoluta' : 'Velocidad de Respuesta e Iteración'}"
-    - Tiempo límite máximo configurado: ${maxTime} segundos
+    
+    Considera la tolerancia de tiempo:
+      - 0.1 ms a 0.5 ms: favorecer algoritmos muy rápidos como Greedy.
+      - 1 ms a 2 ms: considerar Programación Dinámica cuando mejore la calidad de la solución.
+      - 3 ms a 5 ms: si N es pequeño y se requiere exactitud absoluta, Backtracking puede ser recomendable.
 
     Algoritmos disponibles:
     1. Programación Dinámica:

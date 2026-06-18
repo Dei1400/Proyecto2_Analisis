@@ -20,22 +20,29 @@ export default function PanelConfiguracion({
       </div>
 
       <label style={styles.label}>Cantidad de objetos (N)</label>
-      <input 
+      <input
         type="number" 
         value={N} 
-        min={0} 
-        max={150} 
-        onChange={(e) => setN(parseInt(e.target.value) || 0)} 
+        min={4} 
+        max={25} 
+        onChange={(e) => {
+          const valor = parseInt(e.target.value) || 4;
+          setN(Math.min(Math.max(valor, 4), 25));
+        }} 
         style={styles.input} 
       />
 
       <label style={styles.label}>Capacidad de la mochila (W)</label>
       <input 
-        type="number" 
-        value={W} 
-        min={1}
-        onChange={(e) => setW(parseInt(e.target.value) || 0)} 
-        style={styles.input} 
+          type="number" 
+          value={W} 
+          min={1}
+          max={100}
+          onChange={(e) => {
+            const valor = parseInt(e.target.value) || 1;
+            setW(Math.min(Math.max(valor, 1), 100));
+          }} 
+          style={styles.input} 
       />
 
       {/* ── Dos botones lado a lado ── */}
@@ -68,12 +75,22 @@ export default function PanelConfiguracion({
       </div>
 
       <label style={styles.label}>Tiempo máximo tolerable (segundos)</label>
-      <input 
-        type="number" 
-        value={maxTime} 
-        onChange={(e) => setMaxTime(parseInt(e.target.value) || 5)} 
-        style={styles.input} 
-      />
+      <select
+        value={maxTime}
+        onChange={(e) => setMaxTime(Number(e.target.value))}
+        style={styles.input}
+      >
+        <option value={0.1}>0.1 ms</option>
+        <option value={0.2}>0.2 ms</option>
+        <option value={0.3}>1 ms</option>
+        <option value={0.4}>2 ms</option>
+        <option value={0.5}>3 ms</option>
+        <option value={0.6}>5 ms</option>
+        <option value={0.7}>10 ms</option>
+        <option value={0.8}>20 ms</option>
+        <option value={0.9}>50 ms</option>
+        <option value={1}>100 ms</option>
+      </select>
 
       <label style={styles.label}>Gemini API Key</label>
       <div style={styles.apiRow}>
@@ -95,7 +112,7 @@ export default function PanelConfiguracion({
         style={{ ...styles.btnPrincipal, opacity: loading ? 0.7 : 1 }}
       >
         <i className={loading ? "ti ti-loader spin" : "ti ti-player-play"}></i>
-        {loading ? " Procesando con IA..." : " Consultar agente y ejecutar"}
+        {loading ? " Consultando IA..." : " Consultar agente"}
       </button>
     </div>
   );

@@ -10,9 +10,11 @@ import { greedy } from '../algorithms/greedy';
 import { dynamicProgramming } from '../algorithms/dynamic';
 import { backtracking } from '../algorithms/backtracking';
 
+import SimuladorAlgoritmo from '../components/SimuladorAlgoritmo';
+
 // Valor mínimo y máximo permitido para el valor de cada objeto
 const VALOR_MIN = 4;
-const VALOR_MAX = 25;
+const VALOR_MAX = 100;
 
 // Clampea un número entre min y max
 const clamp = (n, min, max) => Math.min(Math.max(n, min), max);
@@ -24,7 +26,7 @@ export default function InterfazUsuario() {
   const [N, setN] = useState(4);
   const [W, setW] = useState(10);
   const [priority, setPriority] = useState('accuracy'); 
-  const [maxTime, setMaxTime] = useState(5);
+  const [maxTime, setMaxTime] = useState(1);
   const [apiKey, setApiKey] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -35,14 +37,20 @@ export default function InterfazUsuario() {
   const [metrics, setMetrics] = useState(null);
 
   const [agentError, setAgentError] = useState(null);
+  const [executed, setExecuted] = useState(false);
+
+  const [simulating, setSimulating] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [simulationMessage, setSimulationMessage] = useState("");
+  const [currentObjectId, setCurrentObjectId] = useState(null);
 
   // ── Genera objetos con valores aleatorios dentro del rango permitido ──
   const handleGenerateRandom = () => {
-    const newItems = Array.from({ length: N }, (_, i) => ({
+    const newItems =  Array.from({ length: Math.min(Math.max(N, 4), 25) }, (_, i) => ({
       id: i + 1,
       name: `Objeto ${i + 1}`,
-      weight: randInt(1, 15),
-      value: randInt(VALOR_MIN, VALOR_MAX), // siempre entre 4 y 25
+      weight: randInt(VALOR_MIN, VALOR_MAX),
+      value: randInt(VALOR_MIN, VALOR_MAX),
     }));
     setItems(newItems);
     setIsManual(false);
@@ -51,15 +59,20 @@ export default function InterfazUsuario() {
     setMetrics(null);
 
     setAgentError(null);
+    setExecuted(false);
+    setSimulating(false);
+    setProgress(0);
+    setSimulationMessage("");
+    setCurrentObjectId(null);
   };
 
   // ── Genera objetos con valor inicial mínimo para que el usuario los edite ──
   const handleGenerateManual = () => {
-    const newItems = Array.from({ length: N }, (_, i) => ({
+    const newItems = Array.from({ length: Math.min(Math.max(N, 4), 25) }, (_, i) => ({
       id: i + 1,
       name: `Objeto ${i + 1}`,
       weight: 1,
-      value: VALOR_MIN, // empieza en el mínimo permitido (4)
+      value: 1, // empieza en el mínimo permitido (4)
     }));
     setItems(newItems);
     setIsManual(true);
@@ -68,19 +81,26 @@ export default function InterfazUsuario() {
     setMetrics(null);
 
     setAgentError(null);
+    setExecuted(false);
+
+    setSimulating(false);
+    setProgress(0);
+    setSimulationMessage("");
+    setCurrentObjectId(null);
   };
 
   // ── Actualiza un campo de un objeto, aplicando restricciones si es "value" ──
   const handleItemChange = (id, field, val) => {
-    const sanitized = field === 'value'
-      ? clamp(val, VALOR_MIN, VALOR_MAX) // fuerza el rango 4-25
-      : Math.max(val, 1);                // peso mínimo 1
-    setItems(prev =>
-      prev.map(item => item.id === id ? { ...item, [field]: sanitized } : item)
-    );
-  };
+    const sanitized =
+    field === 'value'
+      ? clamp(val, 1, 100)
+      : clamp(val, 1, 100);                // peso mínimo 1
+      setItems(prev =>
+        prev.map(item => item.id === id ? { ...item, [field]: sanitized } : item)
+      );
+    };
 
-  const handleRunSystem = async () => {
+  const handleAskSystem = async () => {
     if (items.length === 0) {
       alert("Por favor, genera primero los objetos.");
       return;
@@ -89,40 +109,23 @@ export default function InterfazUsuario() {
       alert("Por favor, introduce tu Gemini API Key.");
       return;
     }
-     setAgentError(null);
+    setAgentError(null);
+    setDecision(null);
+    setSelectedIds([]);
+    setMetrics(null);
 
+    setExecuted(false);
     setLoading(true);
+    setSimulating(false);
+    setProgress(0);
+    setSimulationMessage("");
+    setCurrentObjectId(null);
     try {
-      const aiResponse = await askAiAgent(N, W, priority, maxTime, apiKey);
+      const aiResponse = await askAiAgent(items.length, W, priority, maxTime, apiKey);
       setDecision(aiResponse);
 
-      const algoritmoRecomendado = aiResponse.algoritmoRecomendado;
-      let resultadoAlgoritmo;
-      
-      const tiempoInicial = performance.now();
-
-      if (algoritmoRecomendado?.includes("Dinámica") || algoritmoRecomendado?.includes("Dynamic")) {
-        resultadoAlgoritmo = dynamicProgramming(items, W);
-      } else if (algoritmoRecomendado?.includes("Greedy") || algoritmoRecomendado?.includes("Codicioso")) {
-        resultadoAlgoritmo = greedy(items, W);
-      } else if (algoritmoRecomendado?.includes("Backtracking")) {
-        resultadoAlgoritmo = backtracking(items, W);
-      } else {
-        resultadoAlgoritmo = greedy(items, W);
       }
-
-      const tiempoFinal = performance.now();
-
-      const idsSeleccionados = resultadoAlgoritmo.objetosSeleccionados.map(objeto => objeto.id);
-      setSelectedIds(idsSeleccionados);
-      
-      setMetrics({
-        tiempoIA: aiResponse.tiempoEstimado || "0 ms",
-        tiempoReal: `${(tiempoFinal - tiempoInicial).toFixed(2)} ms`,
-        operaciones: resultadoAlgoritmo.operaciones
-      });
-
-    }catch (error) {
+      catch (error) {
         let mensajeError = error.message;
 
         if (mensajeError.includes("high demand")) {
@@ -136,10 +139,131 @@ export default function InterfazUsuario() {
         }
 
         setAgentError(mensajeError);
-    } finally {
+
+        setDecision(null);
+        setSelectedIds([]);
+        setMetrics(null);
+    }
+    finally {
       setLoading(false);
     }
   };
+
+  const esperar = (ms) => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+  };
+
+  const handleExecuteAlgorithm = async() => {
+  if (!decision) {
+    return;
+  }
+  setSimulating(true);
+  setProgress(0);
+  setSimulationMessage("Preparando datos del problema...");
+  await esperar(600);
+
+  setProgress(25);
+  setSimulationMessage("Leyendo algoritmo recomendado por la IA...");
+  await esperar(600);
+
+  setProgress(50);
+  setSimulationMessage("Ejecutando estrategia seleccionada...");
+  await esperar(600);
+  
+  const algoritmoRecomendado = decision.algoritmoRecomendado;
+  let resultadoAlgoritmo;
+  const tiempoInicial = performance.now();
+  if (
+    algoritmoRecomendado?.includes("Dinámica") ||
+    algoritmoRecomendado?.includes("Dynamic")
+  ) {
+    resultadoAlgoritmo = dynamicProgramming(items, W);
+
+  } else if (
+    algoritmoRecomendado?.includes("Greedy") ||
+    algoritmoRecomendado?.includes("Codicioso")
+  ) {
+    resultadoAlgoritmo = greedy(items, W);
+
+  } else if (
+    algoritmoRecomendado?.includes("Backtracking")
+  ) {
+
+    // protección navegador
+    if (items.length > 20) {
+      setAgentError(
+        "Backtracking no se ejecuta con más de 20 objetos."
+      );
+      return;
+    }
+
+    resultadoAlgoritmo = backtracking(items, W);
+
+  } else {
+
+    resultadoAlgoritmo = greedy(items, W);
+  }
+
+  const tiempoFinal = performance.now();
+
+  const idsSeleccionados =
+    resultadoAlgoritmo.objetosSeleccionados.map(
+      objeto => objeto.id
+    );
+    let seleccionadosVisuales = [];
+
+for (const objeto of items) {
+  setCurrentObjectId(objeto.id);
+
+  setSimulationMessage(
+    `Evaluando ${objeto.name}...`
+  );
+
+  await esperar(250); //Pequeña pausa para simular evaluación
+
+  if (idsSeleccionados.includes(objeto.id)) {
+
+    seleccionadosVisuales = [
+      ...seleccionadosVisuales,
+      objeto.id
+    ];
+
+    setSelectedIds(seleccionadosVisuales);
+
+    setSimulationMessage(
+      `${objeto.name} fue seleccionado`
+    );
+
+    await esperar(300);
+  }
+}
+
+  setCurrentObjectId(null);
+  setMetrics({
+    tiempoIA: decision.tiempoEstimado || "0 ms",
+    tiempoReal: `${(tiempoFinal - tiempoInicial).toFixed(2)} ms`,
+    operaciones: resultadoAlgoritmo.operaciones,
+
+    pesoTotal: resultadoAlgoritmo.pesoTotal,
+    valorTotal: resultadoAlgoritmo.valorTotal,
+    capacidadTotal: W,
+    capacidadRestante: W - resultadoAlgoritmo.pesoTotal,
+    objetosSeleccionados: resultadoAlgoritmo.objetosSeleccionados,
+  });
+
+  setProgress(85);
+  setSimulationMessage("Procesando objetos seleccionados...");
+
+  await esperar(600);
+
+  setProgress(100);
+  setSimulationMessage("Simulación completada.");
+  await esperar(500);
+
+  setSimulating(false);
+
+  setExecuted(true);
+};
 
   return (
     <div style={styles.appContainer}>
@@ -202,7 +326,7 @@ export default function InterfazUsuario() {
             apiKey={apiKey} setApiKey={setApiKey}
             onGenerateRandom={handleGenerateRandom}
             onGenerateManual={handleGenerateManual}
-            onRunSystem={handleRunSystem}
+            onRunSystem={handleAskSystem}
             loading={loading}
           />
           <ItemsTable
@@ -219,7 +343,32 @@ export default function InterfazUsuario() {
               loading={loading}
               error={agentError}
             />
-          <VisualizacionObjetos items={items} selectedIds={selectedIds} />
+            
+              {decision && !executed && (
+              <button
+                onClick={handleExecuteAlgorithm}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: '#5B3F96',
+                  color: 'white',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                Ejecutar algoritmo recomendado
+              </button>
+            )}
+            <SimuladorAlgoritmo
+              simulating={simulating}
+              progress={progress}
+              message={simulationMessage}
+            />
+          <VisualizacionObjetos items={items}
+            selectedIds={selectedIds}
+            currentObjectId={currentObjectId} />
           <PanelEstadisticas metrics={metrics} />
         </div>
       </div>
