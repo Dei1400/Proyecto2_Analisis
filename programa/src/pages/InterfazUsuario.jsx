@@ -42,6 +42,7 @@ export default function InterfazUsuario() {
   const [simulating, setSimulating] = useState(false);
   const [progress, setProgress] = useState(0);
   const [simulationMessage, setSimulationMessage] = useState("");
+  const [currentObjectId, setCurrentObjectId] = useState(null);
 
   // ── Genera objetos con valores aleatorios dentro del rango permitido ──
   const handleGenerateRandom = () => {
@@ -60,8 +61,9 @@ export default function InterfazUsuario() {
     setAgentError(null);
     setExecuted(false);
     setSimulating(false);
-  setProgress(0);
-  setSimulationMessage("");
+    setProgress(0);
+    setSimulationMessage("");
+    setCurrentObjectId(null);
   };
 
   // ── Genera objetos con valor inicial mínimo para que el usuario los edite ──
@@ -84,6 +86,7 @@ export default function InterfazUsuario() {
     setSimulating(false);
     setProgress(0);
     setSimulationMessage("");
+    setCurrentObjectId(null);
   };
 
   // ── Actualiza un campo de un objeto, aplicando restricciones si es "value" ──
@@ -116,6 +119,7 @@ export default function InterfazUsuario() {
     setSimulating(false);
     setProgress(0);
     setSimulationMessage("");
+    setCurrentObjectId(null);
     try {
       const aiResponse = await askAiAgent(items.length, W, priority, maxTime, apiKey);
       setDecision(aiResponse);
@@ -206,16 +210,50 @@ export default function InterfazUsuario() {
     resultadoAlgoritmo.objetosSeleccionados.map(
       objeto => objeto.id
     );
+    let seleccionadosVisuales = [];
 
-  setSelectedIds(idsSeleccionados);
+for (const objeto of items) {
+  setCurrentObjectId(objeto.id);
 
+  setSimulationMessage(
+    `Evaluando ${objeto.name}...`
+  );
+
+  await esperar(250); //Pequeña pausa para simular evaluación
+
+  if (idsSeleccionados.includes(objeto.id)) {
+
+    seleccionadosVisuales = [
+      ...seleccionadosVisuales,
+      objeto.id
+    ];
+
+    setSelectedIds(seleccionadosVisuales);
+
+    setSimulationMessage(
+      `${objeto.name} fue seleccionado`
+    );
+
+    await esperar(300);
+  }
+}
+
+  setCurrentObjectId(null);
   setMetrics({
     tiempoIA: decision.tiempoEstimado || "0 ms",
     tiempoReal: `${(tiempoFinal - tiempoInicial).toFixed(2)} ms`,
-    operaciones: resultadoAlgoritmo.operaciones
+    operaciones: resultadoAlgoritmo.operaciones,
+
+    pesoTotal: resultadoAlgoritmo.pesoTotal,
+    valorTotal: resultadoAlgoritmo.valorTotal,
+    capacidadTotal: W,
+    capacidadRestante: W - resultadoAlgoritmo.pesoTotal,
+    objetosSeleccionados: resultadoAlgoritmo.objetosSeleccionados,
   });
+
   setProgress(85);
   setSimulationMessage("Procesando objetos seleccionados...");
+
   await esperar(600);
 
   setProgress(100);
@@ -328,7 +366,9 @@ export default function InterfazUsuario() {
               progress={progress}
               message={simulationMessage}
             />
-          <VisualizacionObjetos items={items} selectedIds={selectedIds} />
+          <VisualizacionObjetos items={items}
+            selectedIds={selectedIds}
+            currentObjectId={currentObjectId} />
           <PanelEstadisticas metrics={metrics} />
         </div>
       </div>

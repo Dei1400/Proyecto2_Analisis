@@ -2,38 +2,109 @@ import React from 'react';
 
 export default function PanelEstadisticas({ metrics }) {
   return (
-    <div style={styles.container}>
-      <div style={styles.cardTitle}>
-        <i className="ti ti-chart-bar"></i> Panel de estadísticas de rendimiento
-      </div>
+      <div style={styles.container}>
+        <div style={styles.cardTitle}>
+          <i className="ti ti-chart-bar"></i> Panel de estadísticas de rendimiento
+        </div>
 
-      <div style={styles.metricsRow}>
-        <div style={styles.metricCard}>
-          <div style={styles.metricLabel}>Tiempo estimado (IA)</div>
-          <div style={styles.metricVal}>{metrics ? metrics.tiempoIA : '--'}</div>
-          <div style={styles.metricSub}>predicción del agente</div>
-        </div>
-        <div style={styles.metricCard}>
-          <div style={styles.metricLabel}>Tiempo real</div>
-          <div style={styles.metricVal}>{metrics ? metrics.tiempoReal : '--'}</div>
-          <div style={styles.metricSub}>ejecución local</div>
-        </div>
-        <div style={styles.metricCard}>
-          <div style={styles.metricLabel}>Operaciones</div>
-          <div style={styles.metricVal}>{metrics ? metrics.operaciones : '--'}</div>
-          <div style={styles.metricSub}>Carga algorítmica</div>
-        </div>
-      </div>
+        <div style={styles.metricsRow}>
+          <div style={styles.metricCard}>
+            <div style={styles.metricLabel}>Tiempo estimado (IA)</div>
+            <div style={styles.metricVal}>
+              {metrics ? metrics.tiempoIA : '--'}
+            </div>
+            <div style={styles.metricSub}>predicción del agente</div>
+          </div>
 
-      <div style={styles.chartPlaceholder}>
-        <i className="ti ti-chart-area-line" style={styles.chartIcon}></i>
-        <span style={styles.chartText}>Área lista para simulación y gráficos analíticos</span>
+          <div style={styles.metricCard}>
+            <div style={styles.metricLabel}>Tiempo real</div>
+            <div style={styles.metricVal}>
+              {metrics ? metrics.tiempoReal : '--'}
+            </div>
+            <div style={styles.metricSub}>ejecución local</div>
+          </div>
+
+          <div style={styles.metricCard}>
+            <div style={styles.metricLabel}>Operaciones</div>
+            <div style={styles.metricVal}>
+              {metrics ? metrics.operaciones : '--'}
+            </div>
+            <div style={styles.metricSub}>Carga algorítmica</div>
+          </div>
+        </div>
+
+        <div style={styles.chartPlaceholder}>
+          <i
+            className="ti ti-chart-area-line"
+            style={styles.chartIcon}
+          ></i>
+
+          <span style={styles.chartText}>
+            Área lista para simulación y gráficos analíticos
+          </span>
+        </div>
+
+        {metrics && (
+          <div style={styles.summaryBox}>
+
+            <div>
+              <strong>Capacidad total:</strong> {metrics.capacidadTotal}
+            </div>
+
+            <div>
+              <strong>Peso utilizado:</strong> {metrics.pesoTotal}
+            </div>
+
+            <div>
+              <strong>Capacidad restante:</strong> {metrics.capacidadRestante}
+            </div>
+
+            <div>
+              <strong>Valor obtenido:</strong> {metrics.valorTotal}
+            </div>
+
+            {metrics.objetosSeleccionados?.length > 0 ? (
+              <div style={{ marginTop: '8px' }}>
+                <strong>Objetos seleccionados:</strong>
+                <br />
+
+                {metrics.objetosSeleccionados
+                  .map((objeto) => objeto.name)
+                  .join(', ')}
+              </div>
+            ) : (
+              <div style={styles.warningText}>
+                No se seleccionaron objetos para la mochila.
+              </div>
+            )}
+
+          </div>
+        )}
       </div>
-    </div>
-  );
+    );
 }
 
+
 const styles = {
+  summaryBox: {
+  marginTop: '1rem',
+  background: '#FFFFFF',
+  border: '1px solid var(--color-border-soft)',
+  borderRadius: '12px',
+  padding: '1rem',
+  fontSize: '13px',
+  color: 'var(--color-text-main)',
+  lineHeight: '1.8',
+  },
+
+warningText: {
+  marginTop: '10px',
+  color: '#B71C1C',
+  background: '#FFEBEE',
+  border: '1px solid #FFCDD2',
+  borderRadius: '8px',
+  padding: '8px',
+  },
   container: {
     marginTop: '0.5rem',
   },

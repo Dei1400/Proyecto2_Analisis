@@ -81,11 +81,15 @@ export default function PanelConfiguracion({
         style={styles.input}
       >
         <option value={0.1}>0.1 ms</option>
-        <option value={0.5}>0.5 ms</option>
-        <option value={1}>1 ms</option>
-        <option value={2}>2 ms</option>
-        <option value={3}>3 ms</option>
-        <option value={5}>5 ms</option>
+        <option value={0.2}>0.2 ms</option>
+        <option value={0.3}>1 ms</option>
+        <option value={0.4}>2 ms</option>
+        <option value={0.5}>3 ms</option>
+        <option value={0.6}>5 ms</option>
+        <option value={0.7}>10 ms</option>
+        <option value={0.8}>20 ms</option>
+        <option value={0.9}>50 ms</option>
+        <option value={1}>100 ms</option>
       </select>
 
       <label style={styles.label}>Gemini API Key</label>

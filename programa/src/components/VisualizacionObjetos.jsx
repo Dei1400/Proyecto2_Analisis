@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function VisualizacionObjetos({ items = [], selectedIds = [] }) {
+export default function VisualizacionObjetos({items = [],selectedIds = [],currentObjectId = null,}){
 
   return (
     <div style={styles.container}>
@@ -15,36 +15,51 @@ export default function VisualizacionObjetos({ items = [], selectedIds = [] }) {
 
       {items.length > 0 && selectedIds.length === 0 && ( //Para mostrar un mensaje cuando hay objetos 
         <div style={styles.emptyState}>
-          Ejecuta el agente para ver los objetos seleccionados.
+          Ejecuta el algoritmo recomendado para ver la selección.
         </div>
       )}
 
       <div style={styles.itemsVisual}>
-        {items.filter((item) => selectedIds.includes(item.id)).map((item) => {
-          const isSelected = true; 
-          return (
-            <div 
-              key={item.id} 
-              style={{ 
-                ...styles.itemBox, 
-                ...(isSelected ? styles.itemBoxSelected : {}) 
+        {items.map((item) => {
+        const isSelected = selectedIds.includes(item.id);
+        const isCurrent = currentObjectId === item.id;
+
+        return (
+          <div
+            key={item.id}
+            style={{
+              ...styles.itemBox,
+              ...(isCurrent ? styles.itemBoxCurrent : {}),
+              ...(isSelected ? styles.itemBoxSelected : {}),
+            }}
+          >
+            <div
+              style={{
+                ...styles.iname,
+                ...(isSelected ? styles.inameSelected : {}),
               }}
             >
-              <div style={{ ...styles.iname, ...(isSelected ? styles.inameSelected : {}) }}>
-                {item.name}
-              </div>
-              <div style={styles.idata}>
-                w:{item.weight} v:{item.value}
-              </div>
+              {item.name}
             </div>
-          );
-        })}
+
+            <div style={styles.idata}>
+              w:{item.weight} v:{item.value}
+            </div>
+          </div>
+        );
+      })}
       </div>
     </div>
   );
 }
 
 const styles = {
+  itemBoxCurrent: {
+  background: '#FFF8E1',
+  border: '2px solid #F9A825',
+  transform: 'translateY(-3px)',
+  boxShadow: '0 6px 14px rgba(249, 168, 37, 0.18)',
+  },
   emptyState: {
   fontSize: '13px',
   color: 'var(--color-text-sub)',
