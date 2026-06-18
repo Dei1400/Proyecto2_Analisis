@@ -1,4 +1,4 @@
-import readline from "readline"
+import readline from "readline";
 import { greedy } from "./algorithms/greedy.js";
 import { backtracking } from "./algorithms/backtracking.js";
 import { dynamicProgramming } from "./algorithms/dynamic.js";
@@ -35,6 +35,21 @@ function mostrarResultado(resultado) {
 
   console.log("\nObjetos seleccionados:");
   console.table(resultado.objetosSeleccionados);
+}
+
+function mostrarComparacion(resultados) {
+  console.log("\nCOMPARACION DE ALGORITMOS");
+
+  console.table(
+    resultados.map((resultado) => ({
+      algoritmo: resultado.algoritmo,
+      valorTotal: resultado.valorTotal,
+      pesoTotal: resultado.pesoTotal,
+      operaciones: resultado.operaciones,
+      tiempoMs: resultado.tiempoMs,
+      cantidadObjetos: resultado.objetosSeleccionados.length,
+    }))
+  );
 }
 
 // Función para obtener conjuntos de objetos predefinidos para las pruebas
@@ -80,20 +95,48 @@ function obtenerConjunto(opcion) {
   }
 }
 
-function ejecutarAlgoritmo(opcion, objetos, capacidad) {
-  switch (opcion) {
-    case "1":
-      return greedy(objetos, capacidad);
+async function seleccionarConjunto() {
+  console.log("\nSeleccione conjunto de objetos:");
+  console.log("1. Caso simple");
+  console.log("2. Caso donde Greedy puede fallar");
+  console.log("3. Caso más grande");
+  console.log("4. Generar aleatoriamente");
 
-    case "2":
-      return backtracking(objetos, capacidad);
+  const opcionConjunto = (await preguntar("\nOpción: ")).trim();
 
-    case "3":
-      return dynamicProgramming(objetos, capacidad);
+  if (opcionConjunto === "4") {
+    const cantidad = Number(
+      await preguntar("\nCantidad de objetos entre 4 y 25: ")
+    );
 
-    default:
-      return null;
+    const capacidad = Number(
+      await preguntar("Capacidad de la mochila: ")
+    );
+
+    return {
+      nombre: "Conjunto aleatorio",
+      capacidad,
+      objetos: generateRandomItems(cantidad),
+    };
   }
+
+  return obtenerConjunto(opcionConjunto);
+}
+
+function ejecutarAlgoritmo(opcion, objetos, capacidad) {
+  if (opcion === "1") {
+    return greedy(objetos, capacidad);
+  }
+
+  if (opcion === "2") {
+    return backtracking(objetos, capacidad);
+  }
+
+  if (opcion === "3") {
+    return dynamicProgramming(objetos, capacidad);
+  }
+
+  return null;
 }
 
 async function main() {
@@ -103,55 +146,16 @@ async function main() {
   console.log("PRUEBAS DE ALGORITMOS DE MOCHILA");
   console.log("====================================");
 
-  console.log("\nSeleccione algoritmo:");
-  console.log("1. Greedy");
-  console.log("2. Backtracking");
-  console.log("3. Programación Dinámica");
+  console.log("\nSeleccione modo de prueba:");
+  console.log("1. Probar un solo algoritmo");
+  console.log("2. Comparar los 3 algoritmos");
 
-  const algoritmo = await preguntar("\nOpción: ");
+  const modo = (await preguntar("\nOpción: ")).trim();
 
-  console.log("\nSeleccione conjunto de objetos:");
-  console.log("1. Caso simple");
-  console.log("2. Caso donde Greedy falla");
-  console.log("3. Caso más grande");
-  console.log("4. Generar aleatoriamente");
-
-  const conjunto = await preguntar("\nOpción: ");
-
-  let datos;
-
-  if (conjunto === "4") {
-    const cantidad = Number(
-      await preguntar("\nCantidad de objetos: ")
-    );
-
-    const capacidad = Number(
-      await preguntar("Capacidad de la mochila: ")
-    );
-
-    datos = {
-      nombre: "Conjunto Aleatorio",
-      capacidad,
-      objetos: generateRandomItems(cantidad),
-    };
-  } else {
-    datos = obtenerConjunto(conjunto);
-  }
+  const datos = await seleccionarConjunto();
 
   if (!datos) {
-    console.log("\nOpción inválida.");
-    rl.close();
-    return;
-  }
-
-  const resultado = ejecutarAlgoritmo(
-    algoritmo,
-    datos.objetos,
-    datos.capacidad
-  );
-
-  if (!resultado) {
-    console.log("\nAlgoritmo inválido.");
+    console.log("\nConjunto inválido.");
     rl.close();
     return;
   }
@@ -163,7 +167,75 @@ async function main() {
   console.log("\nOBJETOS DISPONIBLES");
   console.table(datos.objetos);
 
-  mostrarResultado(resultado);
+  // MODO 1
+  if (modo === "1") {
+
+    console.log("\nSeleccione algoritmo:");
+    console.log("1. Greedy");
+    console.log("2. Backtracking");
+    console.log("3. Programación Dinámica");
+
+    const algoritmo = (await preguntar("\nOpción: ")).trim();
+
+    const resultado = ejecutarAlgoritmo(
+      algoritmo,
+      datos.objetos,
+      datos.capacidad
+    );
+
+    if (!resultado) {
+      console.log("\nAlgoritmo inválido.");
+      rl.close();
+      return;
+    }
+
+    mostrarResultado(resultado);
+  }
+
+  // MODO 2
+  else if (modo === "2") {
+
+    const resultadoGreedy =
+      greedy(datos.objetos, datos.capacidad);
+
+    const resultadoBacktracking =
+      backtracking(datos.objetos, datos.capacidad);
+
+    const resultadoDynamic =
+      dynamicProgramming(
+        datos.objetos,
+        datos.capacidad
+      );
+
+    mostrarComparacion([
+      resultadoGreedy,
+      resultadoBacktracking,
+      resultadoDynamic,
+    ]);
+
+    console.log(
+      "\nOBJETOS SELECCIONADOS POR CADA ALGORITMO"
+    );
+
+    console.log("\nGREEDY");
+    console.table(
+      resultadoGreedy.objetosSeleccionados
+    );
+
+    console.log("\nBACKTRACKING");
+    console.table(
+      resultadoBacktracking.objetosSeleccionados
+    );
+
+    console.log("\nDYNAMIC");
+    console.table(
+      resultadoDynamic.objetosSeleccionados
+    );
+  }
+
+  else {
+    console.log("\nModo inválido.");
+  }
 
   rl.close();
 }
