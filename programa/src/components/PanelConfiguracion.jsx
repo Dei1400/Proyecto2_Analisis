@@ -23,8 +23,8 @@ export default function PanelConfiguracion({
       <input 
         type="number" 
         value={N} 
-        min={4} 
-        max={25} 
+        min={0} 
+        max={150} 
         onChange={(e) => setN(parseInt(e.target.value) || 0)} 
         style={styles.input} 
       />

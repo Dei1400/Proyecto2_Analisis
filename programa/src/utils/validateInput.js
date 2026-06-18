@@ -2,8 +2,8 @@ export function validateInput({ n, capacity, items }) {
     // AQUI SOLO SE VALIDA LA ENTRAD
   const errors = [];
 
-  if (!Number.isInteger(n) || n < 4 || n > 25) {
-    errors.push("La cantidad de objetos debe estar entre 4 y 25.");
+  if (!Number.isInteger(n) || n < 0 || n > 150) {
+    errors.push("La cantidad de objetos debe estar entre 0 y 150.");
   }
 
   if (!Number.isInteger(capacity) || capacity <= 0) {
