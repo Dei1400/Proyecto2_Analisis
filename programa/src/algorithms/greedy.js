@@ -1,4 +1,6 @@
 export function greedy(objetos, capacidad) {
+    const inicio = performance.now(); // Para medir el tiempo de ejecución del algoritmo
+
   let operaciones = 0; // Contador de operaciones para análisis de complejidad
 
   let pesoTotal = 0;
@@ -25,7 +27,9 @@ export function greedy(objetos, capacidad) {
     }
   }
 
+    const fin = performance.now(); // Fin de la medición del tiempo de ejecución
   return {
+    tiempoMs: Number((fin - inicio).toFixed(4)),
     algoritmo: "greedy",
     objetosSeleccionados,
     pesoTotal,

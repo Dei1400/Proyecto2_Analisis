@@ -1,4 +1,5 @@
 export function backtracking(objetos, capacidad) {
+  const inicio = performance.now();
 
   let operaciones = 0; // Contador de operaciones para análisis de complejidad
 
@@ -48,8 +49,10 @@ export function backtracking(objetos, capacidad) {
   }
 
   buscar(0, 0, 0, []); // llamada inicial a la función de búsqueda
+  const fin = performance.now();
 
   return {
+    tiempoMs: Number((fin - inicio).toFixed(4)),
     algoritmo: "backtracking",
     objetosSeleccionados: mejoresObjetos,
     pesoTotal: mejorPeso,

@@ -1,4 +1,5 @@
 export function dynamicProgramming(objetos, capacidad) {
+  const inicio = performance.now();
   let operaciones = 0;
 
   // Arreglo para almacenar el valor máximo para cada capacidad desde 0 hasta la capacidad dada
@@ -39,7 +40,9 @@ export function dynamicProgramming(objetos, capacidad) {
     valorTotal += objeto.value;
   }
 
+  const fin = performance.now();
   return {
+    tiempoMs: Number((fin - inicio).toFixed(4)),
     algoritmo: "dynamic",
     objetosSeleccionados,
     pesoTotal,
