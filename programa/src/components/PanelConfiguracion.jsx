@@ -75,12 +75,18 @@ export default function PanelConfiguracion({
       </div>
 
       <label style={styles.label}>Tiempo máximo tolerable (segundos)</label>
-      <input 
-        type="number" 
-        value={maxTime} 
-        onChange={(e) => setMaxTime(parseInt(e.target.value) || 5)} 
-        style={styles.input} 
-      />
+      <select
+        value={maxTime}
+        onChange={(e) => setMaxTime(Number(e.target.value))}
+        style={styles.input}
+      >
+        <option value={0.1}>0.1 ms</option>
+        <option value={0.5}>0.5 ms</option>
+        <option value={1}>1 ms</option>
+        <option value={2}>2 ms</option>
+        <option value={3}>3 ms</option>
+        <option value={5}>5 ms</option>
+      </select>
 
       <label style={styles.label}>Gemini API Key</label>
       <div style={styles.apiRow}>
@@ -102,7 +108,7 @@ export default function PanelConfiguracion({
         style={{ ...styles.btnPrincipal, opacity: loading ? 0.7 : 1 }}
       >
         <i className={loading ? "ti ti-loader spin" : "ti ti-player-play"}></i>
-        {loading ? " Procesando con IA..." : " Consultar agente y ejecutar"}
+        {loading ? " Consultando IA..." : " Consultar agente"}
       </button>
     </div>
   );

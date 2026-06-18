@@ -10,6 +10,8 @@ import { greedy } from '../algorithms/greedy';
 import { dynamicProgramming } from '../algorithms/dynamic';
 import { backtracking } from '../algorithms/backtracking';
 
+import SimuladorAlgoritmo from '../components/SimuladorAlgoritmo';
+
 // Valor mínimo y máximo permitido para el valor de cada objeto
 const VALOR_MIN = 4;
 const VALOR_MAX = 100;
@@ -24,7 +26,7 @@ export default function InterfazUsuario() {
   const [N, setN] = useState(4);
   const [W, setW] = useState(10);
   const [priority, setPriority] = useState('accuracy'); 
-  const [maxTime, setMaxTime] = useState(5);
+  const [maxTime, setMaxTime] = useState(1);
   const [apiKey, setApiKey] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -35,6 +37,11 @@ export default function InterfazUsuario() {
   const [metrics, setMetrics] = useState(null);
 
   const [agentError, setAgentError] = useState(null);
+  const [executed, setExecuted] = useState(false);
+
+  const [simulating, setSimulating] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [simulationMessage, setSimulationMessage] = useState("");
 
   // ── Genera objetos con valores aleatorios dentro del rango permitido ──
   const handleGenerateRandom = () => {
@@ -51,6 +58,10 @@ export default function InterfazUsuario() {
     setMetrics(null);
 
     setAgentError(null);
+    setExecuted(false);
+    setSimulating(false);
+  setProgress(0);
+  setSimulationMessage("");
   };
 
   // ── Genera objetos con valor inicial mínimo para que el usuario los edite ──
@@ -68,6 +79,11 @@ export default function InterfazUsuario() {
     setMetrics(null);
 
     setAgentError(null);
+    setExecuted(false);
+
+    setSimulating(false);
+    setProgress(0);
+    setSimulationMessage("");
   };
 
   // ── Actualiza un campo de un objeto, aplicando restricciones si es "value" ──
@@ -81,7 +97,7 @@ export default function InterfazUsuario() {
       );
     };
 
-  const handleRunSystem = async () => {
+  const handleAskSystem = async () => {
     if (items.length === 0) {
       alert("Por favor, genera primero los objetos.");
       return;
@@ -95,50 +111,14 @@ export default function InterfazUsuario() {
     setSelectedIds([]);
     setMetrics(null);
 
+    setExecuted(false);
     setLoading(true);
+    setSimulating(false);
+    setProgress(0);
+    setSimulationMessage("");
     try {
       const aiResponse = await askAiAgent(items.length, W, priority, maxTime, apiKey);
       setDecision(aiResponse);
-      // Protección para evitar bloquear el hilo principal del navegador
-      if (
-        aiResponse.algoritmoRecomendado?.includes("Backtracking") &&
-        items.length > 20
-      ) {
-        setAgentError(
-          "Backtracking no se ejecuta con más de 20 objetos para proteger el rendimiento del navegador."
-        );
-        setDecision(null);
-        setSelectedIds([]);
-        setMetrics(null);
-        setLoading(false);
-        return;
-      }
-
-      const algoritmoRecomendado = aiResponse.algoritmoRecomendado;
-      let resultadoAlgoritmo;
-      
-      const tiempoInicial = performance.now();
-
-      if (algoritmoRecomendado?.includes("Dinámica") || algoritmoRecomendado?.includes("Dynamic")) {
-        resultadoAlgoritmo = dynamicProgramming(items, W);
-      } else if (algoritmoRecomendado?.includes("Greedy") || algoritmoRecomendado?.includes("Codicioso")) {
-        resultadoAlgoritmo = greedy(items, W);
-      } else if (algoritmoRecomendado?.includes("Backtracking")) {
-        resultadoAlgoritmo = backtracking(items, W);
-      } else {
-        resultadoAlgoritmo = greedy(items, W);
-      }
-
-      const tiempoFinal = performance.now();
-
-      const idsSeleccionados = resultadoAlgoritmo.objetosSeleccionados.map(objeto => objeto.id);
-      setSelectedIds(idsSeleccionados);
-      
-      setMetrics({
-        tiempoIA: aiResponse.tiempoEstimado || "0 ms",
-        tiempoReal: `${(tiempoFinal - tiempoInicial).toFixed(2)} ms`,
-        operaciones: resultadoAlgoritmo.operaciones
-      });
 
       }
       catch (error) {
@@ -164,6 +144,88 @@ export default function InterfazUsuario() {
       setLoading(false);
     }
   };
+
+  const esperar = (ms) => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+  };
+
+  const handleExecuteAlgorithm = async() => {
+  if (!decision) {
+    return;
+  }
+  setSimulating(true);
+  setProgress(0);
+  setSimulationMessage("Preparando datos del problema...");
+  await esperar(600);
+
+  setProgress(25);
+  setSimulationMessage("Leyendo algoritmo recomendado por la IA...");
+  await esperar(600);
+
+  setProgress(50);
+  setSimulationMessage("Ejecutando estrategia seleccionada...");
+  await esperar(600);
+  
+  const algoritmoRecomendado = decision.algoritmoRecomendado;
+  let resultadoAlgoritmo;
+  const tiempoInicial = performance.now();
+  if (
+    algoritmoRecomendado?.includes("Dinámica") ||
+    algoritmoRecomendado?.includes("Dynamic")
+  ) {
+    resultadoAlgoritmo = dynamicProgramming(items, W);
+
+  } else if (
+    algoritmoRecomendado?.includes("Greedy") ||
+    algoritmoRecomendado?.includes("Codicioso")
+  ) {
+    resultadoAlgoritmo = greedy(items, W);
+
+  } else if (
+    algoritmoRecomendado?.includes("Backtracking")
+  ) {
+
+    // protección navegador
+    if (items.length > 20) {
+      setAgentError(
+        "Backtracking no se ejecuta con más de 20 objetos."
+      );
+      return;
+    }
+
+    resultadoAlgoritmo = backtracking(items, W);
+
+  } else {
+
+    resultadoAlgoritmo = greedy(items, W);
+  }
+
+  const tiempoFinal = performance.now();
+
+  const idsSeleccionados =
+    resultadoAlgoritmo.objetosSeleccionados.map(
+      objeto => objeto.id
+    );
+
+  setSelectedIds(idsSeleccionados);
+
+  setMetrics({
+    tiempoIA: decision.tiempoEstimado || "0 ms",
+    tiempoReal: `${(tiempoFinal - tiempoInicial).toFixed(2)} ms`,
+    operaciones: resultadoAlgoritmo.operaciones
+  });
+  setProgress(85);
+  setSimulationMessage("Procesando objetos seleccionados...");
+  await esperar(600);
+
+  setProgress(100);
+  setSimulationMessage("Simulación completada.");
+  await esperar(500);
+
+  setSimulating(false);
+
+  setExecuted(true);
+};
 
   return (
     <div style={styles.appContainer}>
@@ -226,7 +288,7 @@ export default function InterfazUsuario() {
             apiKey={apiKey} setApiKey={setApiKey}
             onGenerateRandom={handleGenerateRandom}
             onGenerateManual={handleGenerateManual}
-            onRunSystem={handleRunSystem}
+            onRunSystem={handleAskSystem}
             loading={loading}
           />
           <ItemsTable
@@ -242,6 +304,29 @@ export default function InterfazUsuario() {
               decision={decision}
               loading={loading}
               error={agentError}
+            />
+            
+              {decision && !executed && (
+              <button
+                onClick={handleExecuteAlgorithm}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  borderRadius: '12px',
+                  border: 'none',
+                  background: '#5B3F96',
+                  color: 'white',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                Ejecutar algoritmo recomendado
+              </button>
+            )}
+            <SimuladorAlgoritmo
+              simulating={simulating}
+              progress={progress}
+              message={simulationMessage}
             />
           <VisualizacionObjetos items={items} selectedIds={selectedIds} />
           <PanelEstadisticas metrics={metrics} />
