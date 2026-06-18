@@ -74,7 +74,7 @@ export default function PanelConfiguracion({
         </div>
       </div>
 
-      <label style={styles.label}>Tiempo máximo tolerable (segundos)</label>
+      <label style={styles.label}>Tiempo máximo tolerable (ms)</label>
       <select
         value={maxTime}
         onChange={(e) => setMaxTime(Number(e.target.value))}

@@ -43,11 +43,20 @@ export default async function askAiAgent(N, W, priority, maxTime, apiKey) {
     Debes responder ESTRICTAMENTE con un objeto JSON válido.
     No incluyas introducciones, explicaciones previas ni bloques markdown.
 
+    Estimar operaciones aproximadas según la complejidad:
+
+    - Greedy: aproximadamente N log2(N) + N operaciones.
+    - Programación Dinámica: aproximadamente N * W operaciones.
+    - Backtracking: aproximadamente 2^N operaciones.
+
+El campo operacionesEstimadas debe ser numérico, sin comillas.
+
     El JSON debe cumplir exactamente con esta estructura:
     {
       "algoritmoRecomendado": "Programación Dinámica" o "Greedy" o "Backtracking",
-      "tiempoEstimado": "un string breve estimando el tiempo de ejecución (ej: '< 1 ms', '1.5 s')",
-      "justification": "Una explicación académica muy breve y puntual de por qué elegiste ese algoritmo basado en N, W, prioridad y tiempo máximo."
+      "tiempoEstimado": "un string breve estimando el tiempo de ejecución en milisegundos, ejemplo: '< 0.1 ms', '0.5 ms', '2 ms'",
+      "operacionesEstimadas": un número entero aproximado de operaciones esperadas para el algoritmo seleccionado,
+      "justification": "Una explicación académica muy breve y puntual de por qué elegiste ese algoritmo basado en N, W, prioridad, tiempo tolerable y operaciones estimadas."
     }
     `;
 

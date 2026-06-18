@@ -17,11 +17,11 @@ export default function PanelEstadisticas({ metrics }) {
           </div>
 
           <div style={styles.metricCard}>
-            <div style={styles.metricLabel}>Tiempo real</div>
+            <div style={styles.metricLabel}>Operaciones IA</div>
             <div style={styles.metricVal}>
-              {metrics ? metrics.tiempoReal : '--'}
+              {metrics ? metrics.operacionesEstimadas : '--'}
             </div>
-            <div style={styles.metricSub}>ejecución local</div>
+            <div style={styles.metricSub}>estimación del agente</div>
           </div>
 
           <div style={styles.metricCard}>

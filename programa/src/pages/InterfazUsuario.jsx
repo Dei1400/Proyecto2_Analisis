@@ -242,6 +242,8 @@ for (const objeto of items) {
   setMetrics({
     tiempoIA: decision.tiempoEstimado || "0 ms",
     tiempoReal: `${(tiempoFinal - tiempoInicial).toFixed(2)} ms`,
+
+    operacionesEstimadas: decision.operacionesEstimadas || 0,
     operaciones: resultadoAlgoritmo.operaciones,
 
     pesoTotal: resultadoAlgoritmo.pesoTotal,
