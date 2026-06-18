@@ -1,4 +1,5 @@
 import React from 'react';
+import GraficaMetricas from './GraficaMetricas';
 
 export default function PanelEstadisticas({ metrics }) {
   return (
@@ -15,6 +16,28 @@ export default function PanelEstadisticas({ metrics }) {
             </div>
             <div style={styles.metricSub}>predicción del agente</div>
           </div>
+          {metrics && (
+      <div style={styles.comparisonBox}>
+        <div style={styles.comparisonTitle}>
+          Comparación IA vs ejecución local
+        </div>
+
+        <div style={styles.comparisonGrid}>
+          <div>
+            <strong>Tiempo IA:</strong> {metrics.tiempoIA}
+          </div>
+          <div>
+            <strong>Tiempo real:</strong> {metrics.tiempoReal}
+          </div>
+          <div>
+            <strong>Operaciones IA:</strong> {metrics.operacionesEstimadas}
+          </div>
+          <div>
+            <strong>Operaciones reales:</strong> {metrics.operaciones}
+          </div>
+        </div>
+      </div>
+    )}
 
           <div style={styles.metricCard}>
             <div style={styles.metricLabel}>Operaciones IA</div>
@@ -86,6 +109,28 @@ export default function PanelEstadisticas({ metrics }) {
 
 
 const styles = {
+  comparisonBox: {
+    marginTop: '1rem',
+    background: '#FFFFFF',
+    border: '1px solid var(--color-border-soft)',
+    borderRadius: '12px',
+    padding: '1rem',
+  },
+
+  comparisonTitle: {
+    fontSize: '13px',
+    fontWeight: '700',
+    color: 'var(--color-primary-dark)',
+    marginBottom: '8px',
+  },
+
+  comparisonGrid: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '8px',
+    fontSize: '13px',
+    color: 'var(--color-text-main)',
+  },
   summaryBox: {
   marginTop: '1rem',
   background: '#FFFFFF',
