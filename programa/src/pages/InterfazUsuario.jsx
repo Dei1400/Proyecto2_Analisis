@@ -12,26 +12,19 @@ import { backtracking } from '../algorithms/backtracking';
 
 import SimuladorAlgoritmo from '../components/SimuladorAlgoritmo';
 
-// Valor mínimo y máximo permitido para el valor de cada objeto
-const VALOR_MIN = 4;
-const VALOR_MAX = 100;
-
-// Clampea un número entre min y max
-const clamp = (n, min, max) => Math.min(Math.max(n, min), max);
-
-// Genera un entero aleatorio entre min y max (inclusive)
+const RAND_INIT_MAX = 500; 
 const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
 
 export default function InterfazUsuario() {
   const [N, setN] = useState(4);
-  const [W, setW] = useState(10);
+  const [W, setW] = useState(15);
   const [priority, setPriority] = useState('accuracy'); 
   const [maxTime, setMaxTime] = useState(1);
   const [apiKey, setApiKey] = useState('');
   const [loading, setLoading] = useState(false);
 
   const [items, setItems] = useState([]);
-  const [isManual, setIsManual] = useState(false);
+  const [isManual, setIsManual] = useState(true);
   const [selectedIds, setSelectedIds] = useState([]);
   const [decision, setDecision] = useState(null);
   const [metrics, setMetrics] = useState(null);
@@ -44,65 +37,66 @@ export default function InterfazUsuario() {
   const [simulationMessage, setSimulationMessage] = useState("");
   const [currentObjectId, setCurrentObjectId] = useState(null);
 
-  // ── Genera objetos con valores aleatorios dentro del rango permitido ──
-  const handleGenerateRandom = () => {
-    const newItems =  Array.from({ length: Math.min(Math.max(N, 4), 25) }, (_, i) => ({
+  const [valoresListos, setValoresListos] = useState(false);
+
+  const handleGenerateItems = () => {
+    if (valoresListos || loading) return; 
+
+    const totalObjetos = Math.min(Math.max(N, 4), 25);
+    const newItems = Array.from({ length: totalObjetos }, (_, i) => ({
       id: i + 1,
       name: `Objeto ${i + 1}`,
-      weight: randInt(VALOR_MIN, VALOR_MAX),
-      value: randInt(VALOR_MIN, VALOR_MAX),
+      weight: randInt(1, RAND_INIT_MAX), 
+      value: randInt(1, RAND_INIT_MAX), 
     }));
-    setItems(newItems);
-    setIsManual(false);
-    setSelectedIds([]);
-    setDecision(null);
-    setMetrics(null);
 
-    setAgentError(null);
-    setExecuted(false);
-    setSimulating(false);
-    setProgress(0);
-    setSimulationMessage("");
-    setCurrentObjectId(null);
-  };
-
-  // ── Genera objetos con valor inicial mínimo para que el usuario los edite ──
-  const handleGenerateManual = () => {
-    const newItems = Array.from({ length: Math.min(Math.max(N, 4), 25) }, (_, i) => ({
-      id: i + 1,
-      name: `Objeto ${i + 1}`,
-      weight: 1,
-      value: 1, // empieza en el mínimo permitido (4)
-    }));
     setItems(newItems);
     setIsManual(true);
     setSelectedIds([]);
     setDecision(null);
     setMetrics(null);
-
     setAgentError(null);
     setExecuted(false);
-
     setSimulating(false);
     setProgress(0);
     setSimulationMessage("");
     setCurrentObjectId(null);
   };
 
-  // ── Actualiza un campo de un objeto, aplicando restricciones si es "value" ──
   const handleItemChange = (id, field, val) => {
-    const sanitized =
-    field === 'value'
-      ? clamp(val, 1, 100)
-      : clamp(val, 1, 100);                // peso mínimo 1
-      setItems(prev =>
-        prev.map(item => item.id === id ? { ...item, [field]: sanitized } : item)
-      );
-    };
+    setItems(prev =>
+      prev.map(item => item.id === id ? { ...item, [field]: val === "" ? "" : Number(val) } : item)
+    );
+  };
+
+  const handleToggleValoresListos = () => {
+    // Permite editar si ya hay una respuesta de la IA (decision) y no está cargando
+    if (loading) return; 
+
+    if (!valoresListos) {
+      if (items.length === 0) {
+        alert("Por favor, genera primero los objetos con el botón 'Generar objetos'.");
+        return;
+      }
+      const itemsValidados = items.map(item => ({
+        ...item,
+        weight: !item.weight || item.weight < 1 ? 1 : item.weight,
+        value: !item.value || item.value < 1 ? 1 : item.value
+      }));
+      setItems(itemsValidados);
+      setValoresListos(true);
+    } else {
+      // Al volver a editar, limpiamos la decisión previa para el nuevo flujo
+      setDecision(null);
+      setExecuted(false);
+      setMetrics(null);
+      setValoresListos(false);
+    }
+  };
 
   const handleAskSystem = async () => {
-    if (items.length === 0) {
-      alert("Por favor, genera primero los objetos.");
+    if (!valoresListos) {
+      alert("Por favor, presiona primero el botón de 'Valores listos' para consolidar los datos.");
       return;
     }
     if (!apiKey) {
@@ -115,7 +109,7 @@ export default function InterfazUsuario() {
     setMetrics(null);
 
     setExecuted(false);
-    setLoading(true);
+    setLoading(true); 
     setSimulating(false);
     setProgress(0);
     setSimulationMessage("");
@@ -123,7 +117,6 @@ export default function InterfazUsuario() {
     try {
       const aiResponse = await askAiAgent(items.length, W, priority, maxTime, apiKey);
       setDecision(aiResponse);
-
       }
       catch (error) {
         let mensajeError = error.message;
@@ -139,10 +132,6 @@ export default function InterfazUsuario() {
         }
 
         setAgentError(mensajeError);
-
-        setDecision(null);
-        setSelectedIds([]);
-        setMetrics(null);
     }
     finally {
       setLoading(false);
@@ -191,16 +180,12 @@ export default function InterfazUsuario() {
 
     // protección navegador
     if (items.length > 20) {
-      setAgentError(
-        "Backtracking no se ejecuta con más de 20 objetos."
-      );
+      setAgentError( "Backtracking no se ejecuta con más de 20 objetos.");
       return;
     }
-
     resultadoAlgoritmo = backtracking(items, W);
 
   } else {
-
     resultadoAlgoritmo = greedy(items, W);
   }
 
@@ -212,38 +197,27 @@ export default function InterfazUsuario() {
     );
     let seleccionadosVisuales = [];
 
-for (const objeto of items) {
-  setCurrentObjectId(objeto.id);
+  for (const objeto of items) {
+    setCurrentObjectId(objeto.id);
+    setSimulationMessage(`Evaluando ${objeto.name}...`);
+    await esperar(250);
 
-  setSimulationMessage(
-    `Evaluando ${objeto.name}...`
-  );
-
-  await esperar(250); //Pequeña pausa para simular evaluación
-
-  if (idsSeleccionados.includes(objeto.id)) {
-
-    seleccionadosVisuales = [
-      ...seleccionadosVisuales,
-      objeto.id
-    ];
-
-    setSelectedIds(seleccionadosVisuales);
-
-    setSimulationMessage(
-      `${objeto.name} fue seleccionado`
-    );
-
-    await esperar(300);
-  }
-}
+      if (idsSeleccionados.includes(objeto.id)) {
+        seleccionadosVisuales = [
+          ...seleccionadosVisuales,
+          objeto.id
+        ];
+        setSelectedIds(seleccionadosVisuales);
+        setSimulationMessage(`${objeto.name} fue seleccionado`);
+        await esperar(300);
+      }
+    }
 
   setCurrentObjectId(null);
   setMetrics({
     tiempoIA: decision.tiempoEstimado || "0 ms",
     tiempoReal: `${(tiempoFinal - tiempoInicial).toFixed(2)} ms`,
     operaciones: resultadoAlgoritmo.operaciones,
-
     pesoTotal: resultadoAlgoritmo.pesoTotal,
     valorTotal: resultadoAlgoritmo.valorTotal,
     capacidadTotal: W,
@@ -253,7 +227,6 @@ for (const objeto of items) {
 
   setProgress(85);
   setSimulationMessage("Procesando objetos seleccionados...");
-
   await esperar(600);
 
   setProgress(100);
@@ -261,7 +234,6 @@ for (const objeto of items) {
   await esperar(500);
 
   setSimulating(false);
-
   setExecuted(true);
 };
 
@@ -300,7 +272,6 @@ for (const objeto of items) {
         }
       `}</style>
 
-      {/* Header Panorámico */}
       <header style={styles.header}>
         <div style={styles.headerLeft}>
           <div style={styles.headerIcon}>
@@ -316,59 +287,90 @@ for (const objeto of items) {
       </header>
 
       <div style={styles.workspaceGrid}>
-        {/* COLUMNA IZQUIERDA */}
         <div style={styles.columnInput}>
+          
           <PanelConfiguracion 
             N={N} setN={setN}
             W={W} setW={setW}
             priority={priority} setPriority={setPriority}
             maxTime={maxTime} setMaxTime={setMaxTime}
             apiKey={apiKey} setApiKey={setApiKey}
-            onGenerateRandom={handleGenerateRandom}
-            onGenerateManual={handleGenerateManual}
+            onGenerateRandom={handleGenerateItems} 
+            onGenerateManual={handleGenerateItems} 
             onRunSystem={handleAskSystem}
             loading={loading}
+            // MODIFICACIÓN: Deshabilita inputs si los valores están listos pero la IA aún no responde, o si está cargando.
+            disabledInputs={(valoresListos && !decision) || loading} 
+            apiEnabled={valoresListos && !loading} 
           />
+
+          <div style={styles.actionCard}>
+            <button
+              onClick={handleToggleValoresListos}
+              // MODIFICACIÓN: Solo se deshabilita si diste clic a "valores listos" y la IA NO ha respondido todavía (o si está cargando).
+              disabled={(!decision && valoresListos) || loading} 
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '12px',
+                border: valoresListos ? '2px solid var(--color-accent-pink-dark)' : 'none',
+                background: valoresListos ? 'var(--color-accent-pink)' : 'var(--color-primary-dark)',
+                color: valoresListos ? 'var(--color-accent-pink-dark)' : 'white',
+                fontWeight: '700',
+                cursor: ((!decision && valoresListos) || loading) ? 'not-allowed' : 'pointer',
+                opacity: ((!decision && valoresListos) || loading) ? 0.6 : 1,
+                transition: 'all 0.2s ease'
+              }}
+            >
+              {valoresListos ? "Editar parámetros de objetos" : "Valores listos"}
+            </button>
+          </div>
+
           <ItemsTable
             items={items}
-            isManual={isManual}
+            // MODIFICACIÓN: También los inputs de la tabla se bloquean únicamente durante la espera de la IA.
+            isManual={isManual && !(valoresListos && !decision) && !loading} 
             onItemChange={handleItemChange}
           />
         </div>
 
-        {/* COLUMNA DERECHA */}
         <div style={styles.columnOutput}>
           <PanelAgente
-              decision={decision}
-              loading={loading}
-              error={agentError}
-            />
+            decision={decision}
+            loading={loading}
+            error={agentError}
+          />
             
-              {decision && !executed && (
-              <button
-                onClick={handleExecuteAlgorithm}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  borderRadius: '12px',
-                  border: 'none',
-                  background: '#5B3F96',
-                  color: 'white',
-                  fontWeight: '600',
-                  cursor: 'pointer'
-                }}
-              >
-                Ejecutar algoritmo recomendado
-              </button>
-            )}
-            <SimuladorAlgoritmo
-              simulating={simulating}
-              progress={progress}
-              message={simulationMessage}
-            />
-          <VisualizacionObjetos items={items}
+          {decision && !executed && (
+            <button
+              onClick={handleExecuteAlgorithm}
+              style={{
+                width: '100%',
+                padding: '12px',
+                borderRadius: '12px',
+                border: 'none',
+                background: 'var(--color-primary-dark)',
+                color: 'white',
+                fontWeight: '600',
+                cursor: 'pointer'
+              }}
+            >
+              Ejecutar algoritmo recomendado
+            </button>
+          )}
+
+          <SimuladorAlgoritmo
+            simulating={simulating}
+            progress={progress}
+            message={simulationMessage}
+          />
+
+          <VisualizacionObjetos 
+            items={items}
             selectedIds={selectedIds}
-            currentObjectId={currentObjectId} />
+            currentObjectId={currentObjectId} 
+          />
+
           <PanelEstadisticas metrics={metrics} />
         </div>
       </div>
@@ -388,5 +390,6 @@ const styles = {
   badge: { fontSize: '12px', padding: '2px 8px', borderRadius: '20px', background: 'var(--color-primary-pastel)', color: 'var(--color-primary-dark)', fontWeight: '600', whiteSpace: 'nowrap' },
   workspaceGrid: { display: 'grid', gridTemplateColumns: '43% 55%', gap: '2%', alignItems: 'start' },
   columnInput: { display: 'flex', flexDirection: 'column', gap: '1.5rem' },
-  columnOutput: { display: 'flex', flexDirection: 'column', gap: '1.5rem' }
+  columnOutput: { display: 'flex', flexDirection: 'column', gap: '1.5rem' },
+  actionCard: { background: 'var(--color-card-bg)', padding: '1rem', borderRadius: 'var(--border-radius-cute)', border: '1px solid var(--color-border-soft)', display: 'flex', justifyContent: 'center' }
 };
