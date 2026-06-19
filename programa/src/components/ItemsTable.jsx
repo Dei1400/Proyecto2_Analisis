@@ -16,7 +16,7 @@ export default function ItemsTable({ items = [], isManual = false, onItemChange 
                 <th style={styles.th}>#</th>
                 <th style={styles.th}>Objeto</th>
                 <th style={styles.th}>Peso (w)</th>
-                <th style={styles.th}>Valor (v) <span style={styles.rangeHint}>4–25</span></th>
+                <th style={styles.th}>Valor (v)</th>
                 <th style={styles.th}>v/w</th>
               </tr>
             </thead>
@@ -49,13 +49,13 @@ export default function ItemsTable({ items = [], isManual = false, onItemChange 
                       <input
                         type="number"
                         min={1}
-                        max={100}
+                        max={1000}
                         value={item.value}
                         onChange={(e) => onItemChange(item.id, 'value', parseInt(e.target.value) || 1)}
                         style={{
                           ...styles.cellInput,
                           // borde rojo si el valor está fuera del rango
-                          borderColor: (item.value < 1 || item.value > 100)
+                          borderColor: (item.value < 1 || item.value > 1000)
                             ? '#E53935'
                             : 'var(--color-border-soft)',
                         }}

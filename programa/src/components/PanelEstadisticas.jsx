@@ -55,17 +55,9 @@ export default function PanelEstadisticas({ metrics }) {
             <div style={styles.metricSub}>Carga algorítmica</div>
           </div>
         </div>
-
-        <div style={styles.chartPlaceholder}>
-          <i
-            className="ti ti-chart-area-line"
-            style={styles.chartIcon}
-          ></i>
-
-          <span style={styles.chartText}>
-            Área lista para simulación y gráficos analíticos
-          </span>
-        </div>
+        {metrics && (
+          <GraficaMetricas metrics={metrics} />
+        )}
 
         {metrics && (
           <div style={styles.summaryBox}>
