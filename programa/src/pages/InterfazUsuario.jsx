@@ -5,11 +5,9 @@ import PanelAgente from '../components/PanelAgente';
 import VisualizacionObjetos from '../components/VisualizacionObjetos';
 import PanelEstadisticas from '../components/PanelEstadisticas';
 import askAiAgent from '../components/AgenteIA';
-
 import { greedy } from '../algorithms/greedy';
 import { dynamicProgramming } from '../algorithms/dynamic';
 import { backtracking } from '../algorithms/backtracking';
-
 import SimuladorAlgoritmo from '../components/SimuladorAlgoritmo';
 
 const RAND_INIT_MAX = 500; 
@@ -40,17 +38,34 @@ export default function InterfazUsuario() {
   const [valoresListos, setValoresListos] = useState(false);
 
   const handleGenerateItems = () => {
-    if (valoresListos || loading) return; 
+    if (valoresListos || loading) return;
 
-    const totalObjetos = Math.min(Math.max(N, 4), 25);
-    const newItems = Array.from({ length: totalObjetos }, (_, i) => ({
-      id: i + 1,
-      name: `Objeto ${i + 1}`,
-      weight: randInt(1, RAND_INIT_MAX), 
-      value: randInt(1, RAND_INIT_MAX), 
-    }));
+    const totalObjetos = Math.min(Math.max(N, 4), 25); 
+    const porcentajeSesgoMin = 0.10;
+    const porcentajeSesgoMax = 0.50;
+    const porcentajeSesgo = Math.random() * (porcentajeSesgoMax - porcentajeSesgoMin) + porcentajeSesgoMin; 
+    const cantidadObjetosLivianos = Math.ceil(totalObjetos * porcentajeSesgo);
 
-    setItems(newItems);
+    const newItems = Array.from({ length: totalObjetos }, (_, i) => {
+      let pesoGenerado;
+
+      if (i < cantidadObjetosLivianos) {
+        const maxPesoSeguro = Math.max(1, Math.floor(W * 0.50));
+        pesoGenerado = randInt(1, maxPesoSeguro);
+      } else {
+        pesoGenerado = randInt(1, RAND_INIT_MAX);
+      }
+
+      return {
+        id: i + 1,
+        name: `Objeto ${i + 1}`,
+        weight: pesoGenerado, 
+        value: randInt(1, RAND_INIT_MAX),
+      };
+    });
+
+    const itemsMezclados = newItems.sort(() => Math.random() - 0.5);
+    setItems(itemsMezclados);
     setIsManual(true);
     setSelectedIds([]);
     setDecision(null);
@@ -62,7 +77,7 @@ export default function InterfazUsuario() {
     setSimulationMessage("");
     setCurrentObjectId(null);
   };
-
+  
   const handleItemChange = (id, field, val) => {
     setItems(prev =>
       prev.map(item => item.id === id ? { ...item, [field]: val === "" ? "" : Number(val) } : item)
@@ -227,11 +242,11 @@ export default function InterfazUsuario() {
 
   setProgress(85);
   setSimulationMessage("Procesando objetos seleccionados...");
-  await esperar(600);
+  await esperar(400);
 
   setProgress(100);
   setSimulationMessage("Simulación completada.");
-  await esperar(500);
+  await esperar(300);
 
   setSimulating(false);
   setExecuted(true);
@@ -299,7 +314,6 @@ export default function InterfazUsuario() {
             onGenerateManual={handleGenerateItems} 
             onRunSystem={handleAskSystem}
             loading={loading}
-            // MODIFICACIÓN: Deshabilita inputs si los valores están listos pero la IA aún no responde, o si está cargando.
             disabledInputs={(valoresListos && !decision) || loading} 
             apiEnabled={valoresListos && !loading} 
           />
@@ -307,8 +321,7 @@ export default function InterfazUsuario() {
           <div style={styles.actionCard}>
             <button
               onClick={handleToggleValoresListos}
-              // MODIFICACIÓN: Solo se deshabilita si diste clic a "valores listos" y la IA NO ha respondido todavía (o si está cargando).
-              disabled={(!decision && valoresListos) || loading} 
+              disabled={(loading)} 
               style={{
                 width: '100%',
                 padding: '12px',
@@ -317,8 +330,8 @@ export default function InterfazUsuario() {
                 background: valoresListos ? 'var(--color-accent-pink)' : 'var(--color-primary-dark)',
                 color: valoresListos ? 'var(--color-accent-pink-dark)' : 'white',
                 fontWeight: '700',
-                cursor: ((!decision && valoresListos) || loading) ? 'not-allowed' : 'pointer',
-                opacity: ((!decision && valoresListos) || loading) ? 0.6 : 1,
+                cursor: ( loading) ? 'not-allowed' : 'pointer',
+                opacity: ( loading) ? 0.6 : 1,
                 transition: 'all 0.2s ease'
               }}
             >
@@ -328,7 +341,6 @@ export default function InterfazUsuario() {
 
           <ItemsTable
             items={items}
-            // MODIFICACIÓN: También los inputs de la tabla se bloquean únicamente durante la espera de la IA.
             isManual={isManual && !(valoresListos && !decision) && !loading} 
             onItemChange={handleItemChange}
           />
