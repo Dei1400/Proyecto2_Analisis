@@ -1,6 +1,4 @@
 export function greedy(objetos, capacidad) {
-    const inicio = performance.now(); // Para medir el tiempo de ejecución del algoritmo
-
   let operaciones = 0; // Contador de operaciones para análisis de complejidad
 
   let pesoTotal = 0;
@@ -17,23 +15,53 @@ export function greedy(objetos, capacidad) {
     return densidadB - densidadA;
   });
 
-  for (const objeto of objetosOrdenados) {
+  for (const objeto of objetosOrdenados) { //Se necesita recorrer todos los objetos para seleccionar los que se pueden incluir en la mochila
     operaciones++;
 
-    if (pesoTotal + objeto.weight <= capacidad) {
-      objetosSeleccionados.push(objeto);
+    // mochila llena
+    if (pesoTotal >= capacidad) {
+      break;
+    }
+
+    const espacioDisponible = capacidad - pesoTotal; //Para calcular el espacio disponible en la mochila 
+                                                    // y determinar si el objeto cabe completo o se debe tomar una fracción
+
+    // caso 1: el objeto cabe completo
+    if (objeto.weight <= espacioDisponible) {
+      objetosSeleccionados.push({...objeto,fraccionTomada: 1, esoTomado: objeto.weight, valorTomado: objeto.value, }); //Para almacenar el objeto seleccionado
+                                                              //se incluye la fracción tomada (1 para indicar que se tomó completo), el peso tomado y el valor tomado
+
       pesoTotal += objeto.weight;
       valorTotal += objeto.value;
     }
+
+    // caso 2: el objeto NO cabe completo, pero se toma una fracción
+    else {
+      const fraccion = espacioDisponible / objeto.weight;
+      const valorFraccion = objeto.value * fraccion;
+
+      objetosSeleccionados.push({
+        ...objeto,
+        fraccionTomada: fraccion,
+        pesoTomado: espacioDisponible,
+        valorTomado: valorFraccion,
+      });
+
+      pesoTotal += espacioDisponible;
+      valorTotal += valorFraccion;
+
+      // Como ya se llenó la mochila, se detiene
+      break;
+    }
   }
 
-    const fin = performance.now(); // Fin de la medición del tiempo de ejecución
   return {
-    tiempoMs: Number((fin - inicio).toFixed(4)),
-    algoritmo: "greedy",
+    algoritmo: "greedy-Fraccionario",
     objetosSeleccionados,
     pesoTotal,
     valorTotal,
     operaciones,
   };
 }
+
+/* Cambio para mochila fraccionaria*/
