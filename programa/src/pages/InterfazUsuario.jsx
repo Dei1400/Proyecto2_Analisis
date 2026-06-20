@@ -9,6 +9,7 @@ import { greedy } from '../algorithms/greedy';
 import { dynamicProgramming } from '../algorithms/dynamic';
 import { backtracking } from '../algorithms/backtracking';
 import SimuladorAlgoritmo from '../components/SimuladorAlgoritmo';
+import { medirTiempoEstable } from '../algorithms/medirTiempo';
 
 const RAND_INIT_MAX = 500; 
 const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
@@ -176,35 +177,31 @@ export default function InterfazUsuario() {
   
   const algoritmoRecomendado = decision.algoritmoRecomendado;
   let resultadoAlgoritmo;
-  const tiempoInicial = performance.now();
+  //const tiempoInicial = performance.now();
+
   if (
     algoritmoRecomendado?.includes("Dinámica") ||
     algoritmoRecomendado?.includes("Dynamic")
   ) {
-    resultadoAlgoritmo = dynamicProgramming(items, W);
+  resultadoAlgoritmo = medirTiempoEstable(dynamicProgramming, items, W);
 
   } else if (
     algoritmoRecomendado?.includes("Greedy") ||
     algoritmoRecomendado?.includes("Codicioso")
   ) {
-    resultadoAlgoritmo = greedy(items, W);
+    resultadoAlgoritmo = medirTiempoEstable(greedy, items, W);
 
   } else if (
-    algoritmoRecomendado?.includes("Backtracking")
-  ) {
 
-    // protección navegador
-    if (items.length > 20) {
-      setAgentError( "Backtracking no se ejecuta con más de 20 objetos.");
-      return;
-    }
-    resultadoAlgoritmo = backtracking(items, W);
+  algoritmoRecomendado?.includes("Backtracking")) {
+
+  resultadoAlgoritmo = medirTiempoEstable(backtracking,items,W);
 
   } else {
-    resultadoAlgoritmo = greedy(items, W);
+    resultadoAlgoritmo = medirTiempoEstable(greedy, items, W);
   }
 
-  const tiempoFinal = performance.now();
+  //const tiempoFinal = performance.now();
 
   const idsSeleccionados =
     resultadoAlgoritmo.objetosSeleccionados.map(
@@ -231,7 +228,8 @@ export default function InterfazUsuario() {
   setCurrentObjectId(null);
   setMetrics({
     tiempoIA: decision.tiempoEstimado || "0 ms",
-    tiempoReal: `${(tiempoFinal - tiempoInicial).toFixed(2)} ms`,
+    //tiempoReal: `${(tiempoFinal - tiempoInicial).toFixed(2)} ms`,
+    tiempoReal: `${resultadoAlgoritmo.tiempoMs} ms`,
 
     operacionesEstimadas: decision.operacionesEstimadas || 0,
     operaciones: resultadoAlgoritmo.operaciones,
