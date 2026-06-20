@@ -236,6 +236,7 @@ export default function InterfazUsuario() {
     operacionesEstimadas: decision.operacionesEstimadas || 0,
     operaciones: resultadoAlgoritmo.operaciones,
     pesoTotal: resultadoAlgoritmo.pesoTotal,
+    algoritmo: resultadoAlgoritmo.algoritmo,
     valorTotal: resultadoAlgoritmo.valorTotal,
     capacidadTotal: W,
     capacidadRestante: W - resultadoAlgoritmo.pesoTotal,

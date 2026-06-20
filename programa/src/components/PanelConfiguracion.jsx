@@ -10,7 +10,6 @@ export default function PanelConfiguracion({
   onGenerateRandom,
   onRunSystem,
   loading,
-  onGenerateManual,
 }) {
   const [showPass, setShowPass] = useState(false);
 
@@ -108,26 +107,6 @@ export default function PanelConfiguracion({
           <span>Máxima velocidad</span>
         </div>
       </div>
-
-<<<<<<< HEAD
-      <label style={styles.label}>Tiempo máximo tolerable (ms)</label>
-      <select
-        value={maxTime}
-        onChange={(e) => setMaxTime(Number(e.target.value))}
-        style={styles.input}
-      >
-        <option value={0.1}>0.1 ms</option>
-        <option value={0.2}>0.2 ms</option>
-        <option value={0.3}>1 ms</option>
-        <option value={0.4}>2 ms</option>
-        <option value={0.5}>3 ms</option>
-        <option value={0.6}>5 ms</option>
-        <option value={0.7}>10 ms</option>
-        <option value={0.8}>20 ms</option>
-        <option value={0.9}>50 ms</option>
-        <option value={1}>100 ms</option>
-      </select>
-=======
       {/* INPUT CONDICIONAL */}
       {priority === 'speed' && (
         <div style={{ animation: 'fadeIn 0.2s ease' }}>
@@ -147,7 +126,6 @@ export default function PanelConfiguracion({
           />
         </div>
       )}
->>>>>>> origin/develop
 
       <label style={styles.label}>Gemini API Key</label>
       <div style={styles.apiRow}>
