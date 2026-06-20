@@ -34,8 +34,7 @@ export function backtracking(objetos, capacidad) {
     
     // Incluir objeto
     objetosActuales.push(objeto); //Para incluir el objeto actual en la combinación
-    
-    objetosActuales.push(objeto);
+  
 
     buscar(
       indice + 1,
