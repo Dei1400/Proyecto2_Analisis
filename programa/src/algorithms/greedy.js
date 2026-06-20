@@ -1,10 +1,11 @@
-export function greedy(objetos, capacidad) {
+export function greedy(objetos, capacidad, tiempoMaximoMs = Infinity) {
   let operaciones = 0; // Contador de operaciones para análisis de complejidad
 
   let pesoTotal = 0;
   let valorTotal = 0;
 
   const objetosSeleccionados = []; // Lista para almacenar los objetos seleccionados
+  const inicio = performance.now();
 
   const objetosOrdenados = [...objetos].sort((a, b) => { // Ordenar por densidad (valor/peso) de mayor a menor
     operaciones++;
@@ -17,6 +18,10 @@ export function greedy(objetos, capacidad) {
 
   for (const objeto of objetosOrdenados) { //Se necesita recorrer todos los objetos para seleccionar los que se pueden incluir en la mochila
     operaciones++;
+
+    if (performance.now() - inicio >= tiempoMaximoMs) {
+      break;
+    }
 
     // mochila llena
     if (pesoTotal >= capacidad) {

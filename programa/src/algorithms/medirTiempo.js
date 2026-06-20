@@ -1,6 +1,6 @@
 export function medirTiempoEstable(algoritmo, objetos, capacidad) {
-  const repeticiones = objetos.length >= 20 ? 10 : 50;
-  const calentamiento = objetos.length >= 20 ? 3 : 5;
+  const repeticiones = objetos.length >= 25 ? 10 : 50;
+  const calentamiento = objetos.length >= 25 ? 3 : 5;
 
   for (let i = 0; i < calentamiento; i++) {
     algoritmo(objetos, capacidad);

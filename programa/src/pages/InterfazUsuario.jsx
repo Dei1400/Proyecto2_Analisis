@@ -189,7 +189,7 @@ export default function InterfazUsuario() {
     algoritmoRecomendado?.includes("Greedy") ||
     algoritmoRecomendado?.includes("Codicioso")
   ) {
-    resultadoAlgoritmo = medirTiempoEstable(greedy, items, W);
+  resultadoAlgoritmo = medirTiempoEstable((objetos, capacidad) => greedy(objetos, capacidad, maxTime),items,W);
 
   } else if (
 
@@ -198,7 +198,7 @@ export default function InterfazUsuario() {
   resultadoAlgoritmo = medirTiempoEstable(backtracking,items,W);
 
   } else {
-    resultadoAlgoritmo = medirTiempoEstable(greedy, items, W);
+    resultadoAlgoritmo = medirTiempoEstable((objetos, capacidad) => greedy(objetos, capacidad, maxTime),items,W);
   }
 
   //const tiempoFinal = performance.now();
