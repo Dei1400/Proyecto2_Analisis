@@ -10,7 +10,6 @@ export default function PanelConfiguracion({
   onGenerateRandom,
   onRunSystem,
   loading,
-  onGenerateManual,
 }) {
   const [showPass, setShowPass] = useState(false);
 
@@ -108,7 +107,6 @@ export default function PanelConfiguracion({
           <span>Máxima velocidad</span>
         </div>
       </div>
-
       {/* INPUT CONDICIONAL */}
       {priority === 'speed' && (
         <div style={{ animation: 'fadeIn 0.2s ease' }}>

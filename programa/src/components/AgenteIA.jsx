@@ -9,11 +9,13 @@ export default async function askAiAgent(N, W, priority, maxTime, apiKey) {
     - Cantidad de Objetos (N): ${N}
     - Capacidad Máxima de la Mochila (W): ${W}
     - Criterio de Prioridad del Negocio: "${priority === 'accuracy' ? 'Exactitud Matemática Absoluta' : 'Velocidad de Respuesta e Iteración'}"
-    
-    Considera la tolerancia de tiempo:
-      - 0.1 ms a 0.5 ms: favorecer algoritmos muy rápidos como Greedy.
-      - 1 ms a 2 ms: considerar Programación Dinámica cuando mejore la calidad de la solución.
-      - 3 ms a 5 ms: si N es pequeño y se requiere exactitud absoluta, Backtracking puede ser recomendable.
+    - Tiempo máximo tolerable: ${maxTime} ms
+
+    IMPORTANTE:
+    El sistema tiene tres estrategias disponibles:
+      1. Greedy para Mochila Fraccionaria.
+      2. Backtracking para Mochila 0/1.
+      3. Programación Dinámica para Mochila 0/1.
 
     Algoritmos disponibles:
     1. Programación Dinámica:
@@ -21,33 +23,61 @@ export default async function askAiAgent(N, W, priority, maxTime, apiKey) {
       - Complejidad O(N * W).
       - Recomendada cuando se requiere exactitud y W es razonable.
 
-    2. Greedy:
-      - Heurística.
+    2. Greedy Fraccionario:
+      - Permite tomar fracciones de objetos.
+      - Ordena los objetos por densidad valor/peso.
       - Complejidad O(N log N).
-      - Recomendada cuando la prioridad principal es velocidad.
-      - Puede no encontrar la solución óptima, pero responde más rápido.
+      - Es óptimo para mochila fraccionaria.
+      - Recomendado cuando se prioriza velocidad o cuando se acepta dividir objetos.
 
     3. Backtracking:
       - Exacto.
       - Complejidad O(2^N).
       - Recomendada cuando N es pequeño y se busca exactitud.
 
-    Reglas de decisión obligatorias:
-    - Si la prioridad es "Velocidad de Respuesta e Iteración", recomienda Greedy, especialmente si N >= 15 o el tiempo máximo es muy bajo.
-    - Si la prioridad es "Exactitud Matemática Absoluta" y N <= 8, recomienda Backtracking.
-    - Si la prioridad es "Exactitud Matemática Absoluta" y N > 8, recomienda Programación Dinámica.
-    - No recomiendes Programación Dinámica cuando el usuario haya priorizado velocidad, excepto si N es muy pequeño.
-    - No recomiendes Backtracking si N > 15.
+      Reglas:
+        - Si la prioridad es "Velocidad de Respuesta e Iteración", recomienda Greedy.
+        - Si la prioridad es "Exactitud Matemática Absoluta" y N <= 8, recomienda Backtracking.
+        - Si la prioridad es "Exactitud Matemática Absoluta" y N > 8, recomienda Programación Dinámica.
+        - No recomiendes Backtracking si N > 15, porque su crecimiento es exponencial.
+        - Si N está entre 4 y 8 y se busca exactitud total, Backtracking es aceptable.
+        - Si N está entre 9 y 25 y se busca exactitud total, recomienda Programación Dinámica.
+        - Si la capacidad es muy alta, por ejemplo cercana a 1000, y la prioridad es velocidad, recomienda Greedy.
+        - Si la capacidad es hasta 1000 y la prioridad es exactitud, Programación Dinámica
+        - Si recomiendas Greedy, siempre aclara que puede tomar fracciones de objetos.
+        - Si recomiendas Backtracking o Programación Dinámica, siempre aclara que los objetos se toman completos o no se toman.
 
     REGLA ESTRICTA DE SALIDA:
     Debes responder ESTRICTAMENTE con un objeto JSON válido.
     No incluyas introducciones, explicaciones previas ni bloques markdown.
 
+    Estimar operaciones aproximadas según la complejidad:
+      - Greedy: aproximadamente N log2(N) + N operaciones.
+      - Programación Dinámica: aproximadamente N * W operaciones.
+      - Backtracking: aproximadamente 2^N operaciones.
+
+    El campo operacionesEstimadas debe ser numérico, sin comillas.
+
+    Luego estima el tiempo en milisegundos usando esta fórmula aproximada:
+
+    tiempoEstimadoMs = operacionesEstimadas / 50000
+
+    Reglas para tiempoEstimado:
+    - Sebe ser una aproximacion del tiempo que puede tardar el algoritmo con los aprametros dados.
+    - Si tiempoEstimadoMs < 0.01, responde "0.01 ms"
+    - Si tiempoEstimadoMs está entre 0.01 y 1, responde con 2 decimales, ejemplo "0.26 ms"
+    - Si tiempoEstimadoMs es mayor o igual a 1, responde con 2 decimales, ejemplo "3.45 ms"
+
+    No respondas siempre "< 0.1 ms". Debes calcular el tiempo con base en operacionesEstimadas.
+
+
     El JSON debe cumplir exactamente con esta estructura:
     {
       "algoritmoRecomendado": "Programación Dinámica" o "Greedy" o "Backtracking",
-      "tiempoEstimado": "un string breve estimando el tiempo de ejecución (ej: '< 1 ms', '1.5 s')",
-      "justification": "Una explicación académica muy breve y puntual de por qué elegiste ese algoritmo basado en N, W, prioridad y tiempo máximo."
+      "tipoMochila": "Fraccionaria" o "0/1",
+      "tiempoEstimado": "un string breve estimando el tiempo de ejecución en milisegundos, ejemplo: '< 0.1 ms', '0.5 ms', '2 ms'",
+      "operacionesEstimadas": un número entero aproximado de operaciones esperadas para el algoritmo seleccionado,
+      "justification": "Una explicación académica breve indicando por qué se eligió ese algoritmo, qué tipo de mochila resuelve y cómo influyen N, W, prioridad, tiempo tolerable y operaciones estimadas."
     }
     `;
 
