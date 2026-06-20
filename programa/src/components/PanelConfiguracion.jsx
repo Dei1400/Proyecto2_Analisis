@@ -5,10 +5,11 @@ export default function PanelConfiguracion({
   W, setW,
   priority, setPriority,
   maxTime, setMaxTime,
+  algoMaxTime, setAlgoMaxTime,
   apiKey, setApiKey,
   onGenerateRandom,
   onRunSystem,
-  loading
+  loading,
 }) {
   const [showPass, setShowPass] = useState(false);
 
@@ -19,67 +20,128 @@ export default function PanelConfiguracion({
       </div>
 
       <label style={styles.label}>Cantidad de objetos (N)</label>
-      <input 
+      <input
         type="number" 
         value={N} 
-        min={2} 
+        min={4} 
         max={25} 
-        onChange={(e) => setN(parseInt(e.target.value) || 0)} 
-        style={styles.input} 
+        disabled={loading} 
+        onChange={(e) => {
+          const valor = parseInt(e.target.value) || 4;
+          setN(Math.min(Math.max(valor, 4), 25));
+        }} 
+        style={{ ...styles.input, opacity: loading ? 0.6 : 1, cursor: loading ? 'not-allowed' : 'text' }} 
       />
 
       <label style={styles.label}>Capacidad de la mochila (W)</label>
       <input 
-        type="number" 
-        value={W} 
-        min={1}
-        onChange={(e) => setW(parseInt(e.target.value) || 0)} 
-        style={styles.input} 
+          type="number" 
+          value={W} 
+          min={1}
+          max={1000}
+          disabled={loading}
+          onChange={(e) => {
+            const valor = parseInt(e.target.value) || 1;
+            setW(Math.min(Math.max(valor, 1), 1000));
+          }} 
+          style={{ ...styles.input, opacity: loading ? 0.6 : 1, cursor: loading ? 'not-allowed' : 'text' }} 
       />
 
+      {/* Boton de generar objetos */}
       <div style={styles.row}>
-        <button onClick={onGenerateRandom} style={styles.btnSecundario}>
-          <i className="ti ti-refresh"></i> Generar Objetos Aleatorios
+        <button 
+          onClick={onGenerateRandom} 
+          disabled={loading}
+          style={{ 
+            ...styles.btnSecundario, 
+            width: '100%', 
+            flex: 'none',
+            opacity: loading ? 0.6 : 1,
+            cursor: loading ? 'not-allowed' : 'pointer'
+          }}
+        >
+          <i className="ti ti-refresh"></i> Generar objetos
         </button>
       </div>
+
+      <label style={styles.label}>Duración de la simulación (segundos)</label>
+      <input
+        type="number"
+        value={maxTime}
+        min={1}
+        max={60}
+        disabled={loading}
+        placeholder="Ej. 3"
+        onChange={(e) => {
+          const valor = parseInt(e.target.value) || 1;
+          setMaxTime(Math.max(valor, 1));
+        }}
+        style={{ ...styles.input, opacity: loading ? 0.6 : 1, cursor: loading ? 'not-allowed' : 'text' }} 
+      />
 
       <div style={styles.sectionLabel}>Restricciones de negocio</div>
 
       <div style={styles.priorityGrid}>
         <div 
-          style={{ ...styles.priorityBtn, ...(priority === 'accuracy' ? styles.priorityBtnActive : {}) }}
-          onClick={() => setPriority('accuracy')}
+          style={{ 
+            ...styles.priorityBtn, 
+            ...(priority === 'accuracy' ? styles.priorityBtnActive : {}),
+            opacity: loading ? 0.6 : 1,
+            cursor: loading ? 'not-allowed' : 'pointer'
+          }}
+          onClick={() => !loading && setPriority('accuracy')} 
         >
           <i className="ti ti-target" style={priority === 'accuracy' ? styles.iconActive : styles.iconInactive}></i>
           <span>Máxima exactitud</span>
         </div>
         <div 
-          style={{ ...styles.priorityBtn, ...(priority === 'speed' ? styles.priorityBtnActive : {}) }}
-          onClick={() => setPriority('speed')}
+          style={{ 
+            ...styles.priorityBtn, 
+            ...(priority === 'speed' ? styles.priorityBtnActive : {}),
+            opacity: loading ? 0.6 : 1,
+            cursor: loading ? 'not-allowed' : 'pointer'
+          }}
+          onClick={() => !loading && setPriority('speed')} 
         >
           <i className="ti ti-bolt" style={priority === 'speed' ? styles.iconActive : styles.iconInactive}></i>
           <span>Máxima velocidad</span>
         </div>
       </div>
-
-      <label style={styles.label}>Tiempo máximo tolerable (segundos)</label>
-      <input 
-        type="number" 
-        value={maxTime} 
-        onChange={(e) => setMaxTime(parseInt(e.target.value) || 5)} 
-        style={styles.input} 
-      />
+      {/* INPUT CONDICIONAL */}
+      {priority === 'speed' && (
+        <div style={{ animation: 'fadeIn 0.2s ease' }}>
+          <label style={styles.label}>Tiempo máximo del algoritmo (milisegundos)</label>
+          <input
+            type="number"
+            value={algoMaxTime}
+            min={1}
+            max={5000}
+            disabled={loading}
+            placeholder="Ej. 100"
+            onChange={(e) => {
+              const valor = parseInt(e.target.value) || 1;
+              setAlgoMaxTime(Math.max(valor, 1));
+            }}
+            style={{ ...styles.input, opacity: loading ? 0.6 : 1, cursor: loading ? 'not-allowed' : 'text' }} 
+          />
+        </div>
+      )}
 
       <label style={styles.label}>Gemini API Key</label>
       <div style={styles.apiRow}>
         <input 
           type={showPass ? "text" : "password"} 
-          placeholder="AIzaSy..." 
+          placeholder="API Key..." 
           value={apiKey}
+          disabled={loading} // <-- Desactivar si está cargando
           onChange={(e) => setApiKey(e.target.value)}
-          style={{ ...styles.input, marginBottom: 0, flex: 1 }} 
+          style={{ ...styles.input, marginBottom: 0, flex: 1, opacity: loading ? 0.6 : 1, cursor: loading ? 'not-allowed' : 'text' }} 
         />
-        <button onClick={() => setShowPass(!showPass)} style={styles.btnEye}>
+        <button 
+          onClick={() => !loading && setShowPass(!showPass)} 
+          disabled={loading}
+          style={{ ...styles.btnEye, opacity: loading ? 0.6 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
+        >
           <i className={showPass ? "ti ti-eye-off" : "ti ti-eye"}></i>
         </button>
       </div>
@@ -87,10 +149,10 @@ export default function PanelConfiguracion({
       <button 
         onClick={onRunSystem} 
         disabled={loading} 
-        style={{ ...styles.btnPrincipal, opacity: loading ? 0.7 : 1 }}
+        style={{ ...styles.btnPrincipal, opacity: loading ? 0.7 : 1, cursor: loading ? 'not-allowed' : 'pointer' }}
       >
         <i className={loading ? "ti ti-loader spin" : "ti ti-player-play"}></i>
-        {loading ? " Procesando con IA..." : " Consultar agente y ejecutar"}
+        {loading ? " Consultando IA..." : " Consultar agente"}
       </button>
     </div>
   );
@@ -124,7 +186,7 @@ const styles = {
     marginBottom: '6px',
   },
   input: {
-    width: '100%',
+    width: '80%',
     padding: '10px 12px',
     border: '1px solid var(--color-border-soft)',
     borderRadius: '10px',
@@ -136,6 +198,7 @@ const styles = {
   },
   row: {
     display: 'flex',
+    gap: '8px',
     marginBottom: '14px',
   },
   btnSecundario: {
