@@ -28,7 +28,7 @@ export function greedy(objetos, capacidad) {
 
     // caso 1: el objeto cabe completo
     if (objeto.weight <= espacioDisponible) {
-      objetosSeleccionados.push({...objeto,fraccionTomada: 1, esoTomado: objeto.weight, valorTomado: objeto.value, }); //Para almacenar el objeto seleccionado
+      objetosSeleccionados.push({...objeto,fraccionTomada: 1, pesoTomado: objeto.weight, valorTomado: objeto.value, }); //Para almacenar el objeto seleccionado
                                                               //se incluye la fracción tomada (1 para indicar que se tomó completo), el peso tomado y el valor tomado
 
       pesoTotal += objeto.weight;
